@@ -76,7 +76,7 @@ namespace DMIEditor
         {
             bool imgChanged = false;
 
-            if (dir >= 0 && dir < fileEditor.dmi.states[stateIndex].dirs)
+            if (dir >= 0 && dir < (int)fileEditor.dmi.states[stateIndex].dirs)
             {
                 if (dir != dirIndex)
                 {

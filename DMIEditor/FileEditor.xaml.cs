@@ -83,7 +83,6 @@ namespace DMIEditor
             TabCloseButton btn = (TabCloseButton)sender;
             StateEditorTabItem tItem = (StateEditorTabItem)btn.tabItem;
             closeState(tItem);
-            
         }
 
         private void closeState(StateEditorTabItem stateTab)
@@ -130,7 +129,6 @@ namespace DMIEditor
         {
             //getting currently selected Tab
             StateEditorTabItem currentTab = (StateEditorTabItem)stateTabControl.SelectedItem;
-            if (currentTab == null) return; //we dont have anything selected
 
             //building a list of all currently opened states
             List<int> openedStates = new List<int>();
@@ -144,7 +142,7 @@ namespace DMIEditor
             {
                 if (openedStates.Contains(button.index))
                 {
-                    if(button.index == currentTab.stateEditor.stateIndex)
+                    if(currentTab != null && button.index == currentTab.stateEditor.stateIndex)
                     {
                         button.setPressed(true);
                     }
@@ -161,7 +159,10 @@ namespace DMIEditor
 
             //create dir and frame buttons
             dirPanel.Children.Clear();
-            for (int d = 0; d < dmi.states[currentTab.stateEditor.stateIndex].dirs; d++)
+
+            if (currentTab == null) return; //nothign else to do from here on out if we dont have a selected state
+
+            for (int d = 0; d < (int)dmi.states[currentTab.stateEditor.stateIndex].dirs; d++)
             {
                 Border b = new Border();
                 b.BorderThickness = new System.Windows.Thickness(0.5d);
