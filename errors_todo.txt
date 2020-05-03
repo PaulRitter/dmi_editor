@@ -1,0 +1,2 @@
+D:/Workspaces/Github/vgstation13\icons\obj\gate.dmi - could not be read as dmi
+D:/Workspaces/Github/vgstation13\icons\obj\pipes\large.dmi - could not be read as dmi (something about a v3 dmi file)
