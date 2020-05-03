@@ -16,53 +16,16 @@ namespace DMIEditor
     public partial class FileEditor : UserControl
     {
         public readonly DMI dmi;
-        private MainWindow main;
-        public int currentState { get; private set; }
-        public int currentDirection { get; private set; }
-        public int currentFrame { get; private set; }
-        private Bitmap currentBitmap;
+        public readonly MainWindow main;
 
         private List<SingleIndexButton> stateButtons = new List<SingleIndexButton>();
         private List<DoubleIndexButton> frameButtons = new List<DoubleIndexButton>();
 
         public FileEditor(DMI dmi, MainWindow main)
         {
-            //to force updates to the ui we set this to values which 100% will be changed by calling the default 0,0,0
-            currentState = -1;
-            currentDirection = -1;
-            currentFrame = -1;
-
-
             this.dmi = dmi;
             this.main = main;
             InitializeComponent();
-            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
-            RenderOptions.SetEdgeMode(img, EdgeMode.Aliased);
-
-            //binding events for drawing
-            img.MouseLeftButtonDown += leftMouseDown;
-            img.MouseLeftButtonUp += leftMouseUp;
-            img.MouseLeave += mouseExit;
-            img.MouseMove += mouseMove;
-
-            //creating backgroundmap (tiling)
-            Bitmap backgroundMap = new Bitmap(dmi.width * 2, dmi.height * 2);
-            bool s = true;
-            for (int i = 0; i < backgroundMap.Width; i++)
-            {
-                for (int j = 0; j < backgroundMap.Height; j++)
-                {
-                    System.Drawing.Color c = s ? System.Drawing.Color.Gray : System.Drawing.Color.White;
-                    s = !s;
-                    backgroundMap.SetPixel(i, j, c);
-                }
-                s = !s; //offsetting every row
-            }
-            backgroundImg.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-               backgroundMap.GetHbitmap(),
-               IntPtr.Zero,
-               System.Windows.Int32Rect.Empty,
-               BitmapSizeOptions.FromWidthAndHeight(backgroundMap.Width, backgroundMap.Height));
 
             //adding state buttons
             for (int i = 0; i < dmi.states.Count; i++)
@@ -73,104 +36,132 @@ namespace DMIEditor
                 stateButtons.Add(btn);
             }
 
-            //major jank but oh well
+            //image selection hotkeys
             statePanel.KeyDown += imageSelectionKeyHandler;
             KeyDown += imageSelectionKeyHandler;
             dirPanel.KeyDown += imageSelectionKeyHandler;
+            stateTabControl.SelectionChanged += updateStateUI;
+        }
 
-            //finally setting default state
-            //TODO make states a tabview and have nothing selected by default
-            setImageSelection(0,0,0);
+        private void selectOrOpenState(int state)
+        {
+            foreach (StateEditorTabItem item in stateTabControl.Items)
+            {
+                if(item.stateEditor.stateIndex == state)
+                {
+                    item.IsSelected = true;
+                    updateStateUI();
+                    return;
+                }
+            }
+
+            StateEditor stateEditor = new StateEditor(this, state);
+            StateEditorTabItem tItem = new StateEditorTabItem(stateEditor);
+            stateTabControl.Items.Add(tItem);
+
+            StackPanel sp = new StackPanel();
+            TextBlock txt = new TextBlock();
+            txt.Text = $"\"{dmi.states[state].id}\"";
+            txt.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+            sp.Orientation = Orientation.Horizontal;
+            sp.Children.Add(txt);
+
+            TabCloseButton cBtn = new TabCloseButton(tItem);
+            cBtn.Click += closeState;
+            sp.Children.Add(cBtn);
+
+            tItem.Header = sp;
+            tItem.IsSelected = true;
+            stateEditor.KeyDown += imageSelectionKeyHandler;
+            stateEditor.ImageSelectionChanged += updateFrameButtons;
+            tItem.KeyDown += imageSelectionKeyHandler;
+            updateStateUI();
+        }
+
+        private void closeState(object sender, EventArgs e)
+        {
+            TabCloseButton btn = (TabCloseButton)sender;
+            StateEditorTabItem tItem = (StateEditorTabItem)btn.tabItem;
+            closeState(tItem);
+            
+        }
+
+        private void closeState(StateEditorTabItem stateTab)
+        {
+            stateTabControl.Items.Remove(stateTab);
+            updateStateUI();
         }
 
         // handles arrow keys for image selection
         private void imageSelectionKeyHandler(object sender, KeyEventArgs e)
         {
+            //getting currently selected Tab
+            StateEditorTabItem currentTab = (StateEditorTabItem)stateTabControl.SelectedItem;
+            if (currentTab == null) return; //we dont have anything selected
+
+            StateEditor editor = currentTab.stateEditor;
+
+            Point offset;
             switch (e.Key)
             {
                 case Key.Down:
-                    setImageSelection(currentState, currentDirection, currentFrame + 1);
+                    offset = new Point(0, 1);
                     break;
                 case Key.Up:
-                    setImageSelection(currentState, currentDirection, currentFrame - 1);
+                    offset = new Point(0, -1);
                     break;
                 case Key.Right:
-                    setImageSelection(currentState, currentDirection + 1, currentFrame);
+                    offset = new Point(1,0);
                     break;
                 case Key.Left:
-                    setImageSelection(currentState, currentDirection - 1, currentFrame);
+                    offset = new Point(-1,0);
                     break;
                 default:
-                    break;
+                    return;
             }
+
+            editor.setImage(editor.dirIndex + offset.X, editor.frameIndex + offset.Y);
         }
 
-        //takes new image parameter and checks what parameters changed, as well as invoke the following methods if needed:
-        //stateChanged, dirChanged, frameChanged, imageChanged
-        public void setImageSelection(int newState, int newDirection, int newFrame)
-        {
-            bool imgChanged = false;
-
-            if (newState >= 0 && newState < dmi.states.Count)
-            {
-                if(newState != currentState)
-                {
-                    imgChanged = true;
-                    currentState = newState;
-                    updateStateUI();
-                }
-            }
-            else return; //throw outofrangeexception
-
-            if (newDirection >= 0 && newDirection < dmi.states[newState].dirs)
-            {
-                if(newDirection != currentDirection)
-                {
-                    imgChanged = true;
-                    this.currentDirection = newDirection;
-                    updateDirUI();
-                }
-            }
-            else return; //throw outofrangeexception
-
-            if (newFrame >= 0 && newFrame < dmi.states[newState].frames)
-            {
-                if(newFrame != currentFrame)
-                {
-                    imgChanged = true;
-                    this.currentFrame = newFrame;
-                    updateFrameUI();
-                }
-            }
-            else return; //throw outofrangeexception
-
-            if(imgChanged)
-                imageChanged();
-        }
-
-        //called when a new image should be displayed
-        private void imageChanged()
-        {
-            currentBitmap = dmi.states[currentState].getImage(currentDirection, currentFrame);
-            updateImageDisplay();
-        }
+        private void updateStateUI(object sender, EventArgs e) => updateStateUI();
 
         //called when the state changed, does NOT update the image, just the ui!
         private void updateStateUI()
         {
-            foreach (SingleIndexButton button in stateButtons.Where<SingleIndexButton>(btn => btn.isPressed()))
+            //getting currently selected Tab
+            StateEditorTabItem currentTab = (StateEditorTabItem)stateTabControl.SelectedItem;
+            if (currentTab == null) return; //we dont have anything selected
+
+            //building a list of all currently opened states
+            List<int> openedStates = new List<int>();
+            foreach (StateEditorTabItem item in stateTabControl.Items)
             {
-                button.setPressed(false);
+                openedStates.Add(item.stateEditor.stateIndex);
             }
 
-            foreach (SingleIndexButton button in stateButtons.Where<SingleIndexButton>(btn => (btn.index == currentState)))
+            //setting proper layout for every button
+            foreach (SingleIndexButton button in stateButtons)
             {
-                button.setPressed(true);
+                if (openedStates.Contains(button.index))
+                {
+                    if(button.index == currentTab.stateEditor.stateIndex)
+                    {
+                        button.setPressed(true);
+                    }
+                    else
+                    {
+                        button.setHalfPressed();
+                    }
+                }
+                else
+                {
+                    button.setPressed(false);
+                }
             }
 
             //create dir and frame buttons
             dirPanel.Children.Clear();
-            for (int d = 0; d < dmi.states[currentState].dirs; d++)
+            for (int d = 0; d < dmi.states[currentTab.stateEditor.stateIndex].dirs; d++)
             {
                 Border b = new Border();
                 b.BorderThickness = new System.Windows.Thickness(0.5d);
@@ -180,9 +171,9 @@ namespace DMIEditor
                 title.Text = $"Dir {d + 1}";
                 title.HorizontalAlignment = System.Windows.HorizontalAlignment.Center;
                 framePanel.Children.Add(title);
-                for (int f = 0; f < dmi.states[currentState].frames; f++)
+                for (int f = 0; f < dmi.states[currentTab.stateEditor.stateIndex].frames; f++)
                 {
-                    DoubleIndexButton frameButton = new DoubleIndexButton(this, d, dmi.states[currentState].getImage(d, f), $"Frame {f+1}", f);
+                    DoubleIndexButton frameButton = new DoubleIndexButton(this, d, dmi.states[currentTab.stateEditor.stateIndex].getImage(d, f), $"Frame {f+1}", f);
                     framePanel.Children.Add(frameButton);
                     frameButtons.Add(frameButton);
                 }
@@ -190,98 +181,32 @@ namespace DMIEditor
                 dirPanel.Children.Add(b);
             }
             //sets the proper layout for the buttons
-            updateFrameButtons();
+            updateFrameButtons(currentTab.stateEditor.dirIndex,currentTab.stateEditor.frameIndex);
         }
 
-        //called when the dir changed, does NOT update the image, just the ui!
-        private void updateDirUI()
+
+        private void updateFrameButtons(object sender, ImageSelectionChangedEventArgs e)
         {
-            updateFrameButtons();
+            updateFrameButtons(e.dir, e.frame);
         }
 
-        //called when the frame changed, does NOT update the image, just the ui!
-        private void updateFrameUI()
-        {
-            updateFrameButtons();
-        }
-
-        private void updateFrameButtons()
+        private void updateFrameButtons(int dir, int frame)
         {
             foreach (DoubleIndexButton btn in frameButtons.Where<DoubleIndexButton>(btn => btn.isPressed()))
             {
                 btn.setPressed(false);
             }
 
-            foreach (DoubleIndexButton btn in frameButtons.Where<DoubleIndexButton>(btn => btn.index == currentDirection && btn.secondIndex == currentFrame))
+            foreach (DoubleIndexButton btn in frameButtons.Where<DoubleIndexButton>(btn => btn.index == dir && btn.secondIndex == frame))
             {
                 btn.setPressed(true);
             }
         }
 
-        // =====================
-        // =====================
-        // Tool handling
-        private bool mouseHeld = false; //tracks wether or not left mouse button is held
-
-        //will try to modify the specified pixel with the selected tool
-        private void tryAct(int x, int y)
-        {
-            if (main.getTool().pixelAct(ref currentBitmap, x, y))
-                updateImageDisplay();
-        }
-
-        // Event handling
-        private void leftMouseDown(object sender, MouseEventArgs e)
-        {
-            mouseHeld = true;
-            System.Windows.Point wP = e.GetPosition(img);
-            tryAct(realPos(wP.X), realPos(wP.Y));
-        }
-        private void mouseMove(object sender, MouseEventArgs e)
-        {
-            if (mouseHeld)
-            {
-                System.Windows.Point wP = e.GetPosition(img);
-                tryAct(realPos(wP.X), realPos(wP.Y));
-            }
-        }
-        private void leftMouseUp(object sender, MouseEventArgs e)
-        {
-            mouseHeld = false;
-        }
-        private void mouseExit(object sender, MouseEventArgs e)
-        {
-            mouseHeld = false;
-        }
-        // =====================
-        // =====================
-
         // helper to calculate from screen pixel pos -> bitmap pixel pos
-        private int realPos(double p)
+        public static int realPos(double p)
         {
             return (int)Math.Floor(p / 2d);
-        }
-
-        //updates the image display
-        //very inefficient, needs to be reworked!!! somehow permanently uses up more and more ram
-        public void updateImageDisplay()
-        {
-            Bitmap scaledMap = new Bitmap(currentBitmap.Width * 2, currentBitmap.Height * 2);
-            for (int x = 0; x < scaledMap.Width; x++)
-            {
-                for (int y = 0; y < scaledMap.Height; y++)
-                {
-                    int real_x = realPos(x);
-                    int real_y = realPos(y);
-                    scaledMap.SetPixel(x, y, currentBitmap.GetPixel(real_x, real_y));
-                }
-            }
-
-            img.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-               scaledMap.GetHbitmap(),
-               IntPtr.Zero,
-               System.Windows.Int32Rect.Empty,
-               BitmapSizeOptions.FromWidthAndHeight(scaledMap.Width, scaledMap.Height));
         }
 
         private class SingleIndexButton : Button
@@ -331,7 +256,7 @@ namespace DMIEditor
 
             protected virtual void clicked(object sender, EventArgs e)
             {
-                fileEditor.setImageSelection(index, 0, 0);
+                fileEditor.selectOrOpenState(index);
             }
 
             public void setPressed(bool pressed)
@@ -345,6 +270,12 @@ namespace DMIEditor
                 {
                     Background = System.Windows.Media.Brushes.LightGray;
                 }
+            }
+
+            public void setHalfPressed()
+            {
+                this.pressed = false;
+                Background = System.Windows.Media.Brushes.LightGreen;
             }
 
             public bool isPressed() { return pressed; }
@@ -361,7 +292,19 @@ namespace DMIEditor
             }
             protected override void clicked(object sender, EventArgs e)
             {
-                fileEditor.setImageSelection(fileEditor.currentState, index, secondIndex);
+                StateEditorTabItem item = (StateEditorTabItem)fileEditor.stateTabControl.SelectedItem;
+                if (item == null) return; //uh oh
+                item.stateEditor.setImage(index, secondIndex);
+            }
+        }
+
+        private class StateEditorTabItem : TabItem
+        {
+            public readonly StateEditor stateEditor;
+            public StateEditorTabItem(StateEditor stateEditor)
+            {
+                this.stateEditor = stateEditor;
+                Content = stateEditor;
             }
         }
     }

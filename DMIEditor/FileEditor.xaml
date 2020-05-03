@@ -16,25 +16,7 @@
                 <ColumnDefinition Width="60*"/>
                 <ColumnDefinition Width="40*"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Padding="10">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="70*"/>
-                        <ColumnDefinition Width="30*"/>
-                    </Grid.ColumnDefinitions>
-                    <Viewbox x:Name="imageViewbox" Grid.Column="0" >
-                        <Border BorderBrush="Black" BorderThickness="0.1">
-                            <Grid>
-                                <Image x:Name="backgroundImg" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <Image x:Name="img" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-                    </Viewbox>
-                    <ScrollViewer Grid.Column="1" x:Name="LayersScrollView" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="Red">
-                        <TextBlock Text="Layers (TODO)" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
+            <TabControl Grid.Column="0" x:Name="stateTabControl"/>
             <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
