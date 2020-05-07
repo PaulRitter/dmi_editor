@@ -18,8 +18,8 @@ namespace DMIEditor
         public readonly Dmi Dmi;
         public readonly MainWindow Main;
 
-        private List<SingleIndexButton> _stateButtons = new List<SingleIndexButton>();
-        private List<DoubleIndexButton> _frameButtons = new List<DoubleIndexButton>();
+        private List<StateButton> _stateButtons = new List<StateButton>();
+        private List<ImageSelectionButton> _frameButtons = new List<ImageSelectionButton>();
 
         public FileEditor(Dmi dmi, MainWindow main)
         {
@@ -31,7 +31,7 @@ namespace DMIEditor
             for (int i = 0; i < dmi.States.Count; i++)
             {
                 Bitmap bm = dmi.States[i].getImage(0, 0);
-                SingleIndexButton btn = new SingleIndexButton(this, i, bm, $"\"{dmi.States[i].id}\"" + (bm == null ? "Bitmap was null!!!" : ""));
+                StateButton btn = new StateButton(this, i, bm, $"\"{dmi.States[i].Id}\"" + (bm == null ? "Bitmap was null!!!" : ""));
                 statePanel.Children.Add(btn);
                 _stateButtons.Add(btn);
             }
@@ -43,11 +43,11 @@ namespace DMIEditor
             stateTabControl.SelectionChanged += UpdateStateUi;
         }
 
-        private void SelectOrOpenState(int state)
+        private void SelectOrOpenState(int stateIndex)
         {
             foreach (StateEditorTabItem item in stateTabControl.Items)
             {
-                if(item.StateEditor.StateIndex == state)
+                if(item.StateEditor.StateIndex == stateIndex)
                 {
                     item.IsSelected = true;
                     UpdateStateUi();
@@ -55,14 +55,16 @@ namespace DMIEditor
                 }
             }
 
-            StateEditor stateEditor = new StateEditor(this, state);
+            DMIState state = Dmi.States[stateIndex];
+            StateEditor stateEditor = new StateEditor(this, stateIndex, state);
             StateEditorTabItem tItem = new StateEditorTabItem(stateEditor);
             stateTabControl.Items.Add(tItem);
 
             StackPanel sp = new StackPanel();
-            TextBlock txt = new TextBlock();
-            txt.Text = $"\"{Dmi.States[state].id}\"";
-            txt.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+            TextBlock txt = new TextBlock
+            {
+                Text = $"\"{state.Id}\"", VerticalAlignment = System.Windows.VerticalAlignment.Center
+            };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
 
@@ -138,11 +140,11 @@ namespace DMIEditor
             }
 
             //setting proper layout for every button
-            foreach (SingleIndexButton button in _stateButtons)
+            foreach (StateButton button in _stateButtons)
             {
-                if (openedStates.Contains(button.Index))
+                if (openedStates.Contains(button.stateIndex))
                 {
-                    if(currentTab != null && button.Index == currentTab.StateEditor.StateIndex)
+                    if(currentTab != null && button.stateIndex == currentTab.StateEditor.StateIndex)
                     {
                         button.SetPressed(true);
                     }
@@ -160,9 +162,9 @@ namespace DMIEditor
             //create dir and frame buttons
             dirPanel.Children.Clear();
 
-            if (currentTab == null) return; //nothign else to do from here on out if we dont have a selected state
+            if (currentTab == null) return; //nothing else to do from here on out if we dont have a selected state
 
-            for (int d = 0; d < (int)Dmi.States[currentTab.StateEditor.StateIndex].dirs; d++)
+            for (int d = 0; d < (int)currentTab.StateEditor.State.Dirs; d++)
             {
                 Border b = new Border
                 {
@@ -175,9 +177,9 @@ namespace DMIEditor
                     Text = $"Dir {d + 1}", HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
                 framePanel.Children.Add(title);
-                for (int f = 0; f < Dmi.States[currentTab.StateEditor.StateIndex].frames; f++)
+                for (int f = 0; f < currentTab.StateEditor.State.Frames; f++)
                 {
-                    DoubleIndexButton frameButton = new DoubleIndexButton(this, d, Dmi.States[currentTab.StateEditor.StateIndex].getImage(d, f), $"Frame {f+1}", f);
+                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, currentTab.StateEditor.State.getImage(d, f), $"Frame {f+1}");
                     framePanel.Children.Add(frameButton);
                     _frameButtons.Add(frameButton);
                 }
@@ -196,12 +198,12 @@ namespace DMIEditor
 
         private void UpdateFrameButtons(int dir, int frame)
         {
-            foreach (DoubleIndexButton btn in _frameButtons.Where<DoubleIndexButton>(btn => btn.isPressed()))
+            foreach (ImageSelectionButton btn in _frameButtons.Where<ImageSelectionButton>(btn => btn.isPressed()))
             {
                 btn.SetPressed(false);
             }
 
-            foreach (DoubleIndexButton btn in _frameButtons.Where<DoubleIndexButton>(btn => btn.Index == dir && btn.SecondIndex == frame))
+            foreach (ImageSelectionButton btn in _frameButtons.Where<ImageSelectionButton>(btn => btn.DirIndex == dir && btn.FrameIndex == frame))
             {
                 btn.SetPressed(true);
             }
@@ -213,86 +215,43 @@ namespace DMIEditor
             return (int)Math.Floor(p / 2d);
         }
 
-        private class SingleIndexButton : Button
+        private class StateButton : LabeledImageButton
         {
             protected readonly FileEditor FileEditor;
             //stateindex
-            public readonly int Index;
+            public readonly int stateIndex;
             private bool _pressed = false;
-            public SingleIndexButton(FileEditor fileEditor, int index, Bitmap bm, string labeltext)
+            public StateButton(FileEditor fileEditor, int stateIndex, Bitmap bm, string labeltext) : base(bm,labeltext)
             {
-                this.Index = index;
+                this.stateIndex = stateIndex;
                 this.FileEditor = fileEditor;
                 
-                //create stackpanel
-                StackPanel stackPanel = new StackPanel();
-
-                //create image
-                System.Windows.Controls.Image img = new System.Windows.Controls.Image
-                {
-                    Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        bm.GetHbitmap(),
-                        IntPtr.Zero,
-                        System.Windows.Int32Rect.Empty,
-                        BitmapSizeOptions.FromWidthAndHeight(bm.Width, bm.Height)),
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Stretch = Stretch.None
-                };
-                //add to stackpanel
-                stackPanel.Children.Add(img);
-
-                //create label
-                TextBlock label = new TextBlock
-                {
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center, Text = labeltext
-                };
-                //add to stackpanel
-                stackPanel.Children.Add(label);
-
-                //add stackpanel to btn
-                Content = stackPanel;
-
-                //layout stuff
-                Margin = new System.Windows.Thickness(3);
-                SetPressed(false);
-
                 //register click event
                 Click += Clicked;
             }
 
             protected virtual void Clicked(object sender, EventArgs e)
             {
-                FileEditor.SelectOrOpenState(Index);
+                FileEditor.SelectOrOpenState(stateIndex);
             }
-
-            public void SetPressed(bool pressed)
-            {
-                this._pressed = pressed;
-                Background = pressed ? System.Windows.Media.Brushes.LightBlue : System.Windows.Media.Brushes.LightGray;
-            }
-
-            public void SetHalfPressed()
-            {
-                this._pressed = false;
-                Background = System.Windows.Media.Brushes.LightGreen;
-            }
-
-            public bool isPressed() { return _pressed; }
         }
 
-        private class DoubleIndexButton : SingleIndexButton
+        private class ImageSelectionButton : LabeledImageButton
         {
-            //index is used for dirindex
-            //secondindex is used for frameindex
-            public readonly int SecondIndex;
-            public DoubleIndexButton(FileEditor fileEditor, int index, Bitmap bm, string labeltext, int secondIndex) : base (fileEditor, index, bm, labeltext)
+            public readonly FileEditor FileEditor;
+            public readonly int DirIndex;
+            public readonly int FrameIndex;
+            public ImageSelectionButton(FileEditor fileEditor, int dirIndex, int frameIndex, Bitmap bm, string labeltext) : base (bm, labeltext)
             {
-                this.SecondIndex = secondIndex;
+                this.DirIndex = dirIndex;
+                this.FrameIndex = frameIndex;
+                this.FileEditor = fileEditor;
+                Click += Clicked;
             }
-            protected override void Clicked(object sender, EventArgs e)
+            protected void Clicked(object sender, EventArgs e)
             {
                 StateEditorTabItem item = (StateEditorTabItem)FileEditor.stateTabControl.SelectedItem;
-                item?.StateEditor.SetImage(Index, SecondIndex);
+                item?.StateEditor.SetImage(DirIndex, FrameIndex);
             }
         }
 

@@ -24,8 +24,8 @@
                 <RowDefinition Height="80*"/>
                 <RowDefinition Height="20*"/>
             </Grid.RowDefinitions>
-            <ScrollViewer Grid.Row="0" x:Name="LayersScrollView" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="Red">
-                <TextBlock Text="Layers (TODO)" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="LayerStackPanel"></StackPanel>
             </ScrollViewer>
             <StackPanel Grid.Row="1" x:Name="stateValues" Background="Yellow">
                 <TextBlock Text="State values (TODO)" HorizontalAlignment="Center" FontSize="20"/>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DMI_Parser;
+using Color = System.Drawing.Color;
 
 namespace DMIEditor
 {
@@ -20,14 +23,28 @@ namespace DMIEditor
     public partial class StateEditor : UserControl
     {
         public readonly FileEditor FileEditor;
-        private Bitmap _bitmap;
+        private List<Layer> _layers;
+        private int _layerIndex = 0;
+        private List<LayerButton> _layerButtons = new List<LayerButton>();
         public readonly int StateIndex;
+        public readonly DMIState State;
         public int DirIndex { get; private set; }
         public int FrameIndex { get; private set; }
-        public StateEditor(FileEditor fileEditor, int stateIndex)
+
+        public Bitmap SelectedBitmap
+        {
+            get
+            {
+                return _layers.First(l => l.Index == _layerIndex).Bitmap;
+            }
+        }
+
+        public StateEditor(FileEditor fileEditor, int stateIndex, DMIState state)
         {
             this.FileEditor = fileEditor;
             this.StateIndex = stateIndex;
+            State = state;
+            _layers = new List<Layer>();
             InitializeComponent();
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetEdgeMode(img, EdgeMode.Aliased);
@@ -39,18 +56,19 @@ namespace DMIEditor
             img.MouseMove += mouseMove;
 
             //creating backgroundmap (tiling)
-            Bitmap backgroundMap = new Bitmap(fileEditor.Dmi.Width * 2, fileEditor.Dmi.Height * 2);
+            Bitmap backgroundMap = new Bitmap(State.Width * 2, State.Height * 2);
             bool s = true;
             for (int i = 0; i < backgroundMap.Width; i++)
             {
                 for (int j = 0; j < backgroundMap.Height; j++)
                 {
-                    System.Drawing.Color c = s ? System.Drawing.Color.Gray : System.Drawing.Color.White;
+                    Color c = s ? Color.Gray : Color.White;
                     s = !s;
                     backgroundMap.SetPixel(i, j, c);
                 }
                 s = !s; //offsetting every row
             }
+            
             backgroundImg.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
                backgroundMap.GetHbitmap(),
                IntPtr.Zero,
@@ -60,10 +78,8 @@ namespace DMIEditor
             //setting default image
             DirIndex = -1;
             FrameIndex = -1;
-            SetImage(0, 0);
+            SetImage(0,0);
         }
-
-        
 
         public event EventHandler<ImageSelectionChangedEventArgs> ImageSelectionChanged;
 
@@ -76,7 +92,7 @@ namespace DMIEditor
         {
             bool imgChanged = false;
 
-            if (dir >= 0 && dir < (int)FileEditor.Dmi.States[StateIndex].dirs)
+            if (dir >= 0 && dir < (int)State.Dirs)
             {
                 if (dir != DirIndex)
                 {
@@ -87,7 +103,7 @@ namespace DMIEditor
             }
             else return; //throw outofrangeexception
 
-            if (frame >= 0 && frame < FileEditor.Dmi.States[StateIndex].frames)
+            if (frame >= 0 && frame < State.Frames)
             {
                 if (frame != FrameIndex)
                 {
@@ -99,7 +115,7 @@ namespace DMIEditor
             else return; //throw outofrangeexception
 
             if (imgChanged)
-                updateImageDisplay();
+                UpdateImageDisplay();
         }
 
         // =====================
@@ -110,8 +126,8 @@ namespace DMIEditor
         //will try to modify the specified pixel with the selected tool
         private void TryAct(int x, int y)
         {
-            if (FileEditor.Main.GetTool().pixelAct(ref _bitmap, x, y))
-                updateImageDisplay();
+            if (FileEditor.Main.GetTool().pixelAct(SelectedBitmap, x, y))
+                ReRenderImage();
         }
 
         // Event handling
@@ -140,27 +156,121 @@ namespace DMIEditor
         // =====================
         // =====================
 
-        //updates the image display
-        //very inefficient, needs to be reworked!!! somehow permanently uses up more and more ram
-        public void updateImageDisplay()
+        private void AddLayer(object sender, EventArgs e) => AddLayer(_layerIndex+1, new Bitmap(State.Width, State.Height));
+        
+        public void AddLayer(int index, Bitmap bitmap)
         {
-            _bitmap = FileEditor.Dmi.States[StateIndex].getImage(DirIndex, FrameIndex);
-            Bitmap scaledMap = new Bitmap(_bitmap.Width * 2, _bitmap.Height * 2);
-            for (int x = 0; x < scaledMap.Width; x++)
+            foreach (Layer layer in _layers)
             {
-                for (int y = 0; y < scaledMap.Height; y++)
+                if(layer.Index == index) throw new ArgumentException("A Layer with that index already exists.");
+            }
+            _layers.Add(new Layer(bitmap,index));
+            _layers.Sort((l1, l2) => l1.CompareTo(l2)); //layers are always sorted from highest index to lowest
+            UpdateLayerUi();
+            SelectLayer(index);
+        }
+
+        public void SelectLayer(int index)
+        {
+            _layerIndex = index;
+            foreach (var btn in _layerButtons)
+            {
+                if (btn.LayerIndex == index)
                 {
-                    int realX = FileEditor.RealPos(x);
-                    int realY = FileEditor.RealPos(y);
-                    scaledMap.SetPixel(x, y, _bitmap.GetPixel(realX, realY));
+                    btn.SetPressed(true);
+                }
+                else
+                {
+                    btn.SetPressed(false);
                 }
             }
+        }
 
+        public void UpdateLayerUi()
+        {
+            LayerStackPanel.Children.Clear();
+            _layerButtons.Clear();
+            foreach (var layer in _layers)
+            {
+                var btn = new LayerButton(layer.Bitmap, layer.Index, this);
+                
+                LayerStackPanel.Children.Add(btn);
+                _layerButtons.Add(btn);
+            }
+
+            Button addBtn = new Button
+            {
+                Content = new TextBlock
+                {
+                    Text = "+"
+                }
+            };
+            addBtn.Click += AddLayer;
+            LayerStackPanel.Children.Add(addBtn);
+        }
+        
+        //updates the image display
+        //very inefficient, needs to be reworked!!! somehow permanently uses up more and more ram
+        public void UpdateImageDisplay()
+        {
+            _layers = new List<Layer>();
+            UpdateLayerUi();
+            
+            AddLayer(0, State.getImage(DirIndex, FrameIndex));
+
+            ReRenderImage();
+        }
+
+        public void ReRenderImage()
+        {
+            Bitmap actual = new Bitmap(State.Width * 2, State.Height * 2);
+            for (int x = 0; x < State.Width; x++)
+            {
+                for (int y = 0; y < State.Height; y++)
+                {
+                    foreach (Layer layer in _layers)
+                    {
+                        int actualX = x * 2;
+                        int actualY = y * 2;
+                        Color c = layer.Bitmap.GetPixel(x, y);
+                        //TODO adding colors
+                        if (c.ToArgb() != 0) // if this pixel has a value
+                        {
+                            actual.SetPixel(actualX, actualY, c);
+                            actual.SetPixel(actualX+1,actualY,c);
+                            actual.SetPixel(actualX, actualY+1, c);
+                            actual.SetPixel(actualX+1,actualY+1,c);
+                            break;
+                        }
+                    }
+                }
+            }
+            
             img.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-               scaledMap.GetHbitmap(),
-               IntPtr.Zero,
-               System.Windows.Int32Rect.Empty,
-               BitmapSizeOptions.FromWidthAndHeight(scaledMap.Width, scaledMap.Height));
+                actual.GetHbitmap(),
+                IntPtr.Zero,
+                Int32Rect.Empty,
+                BitmapSizeOptions.FromWidthAndHeight(actual.Width, actual.Height));
+
+            UpdateLayerUi();
+        }
+
+        private class LayerButton : LabeledImageButton
+        {
+            public readonly int LayerIndex;
+            private readonly StateEditor _stateEditor;
+            public LayerButton(Bitmap bm, int layerIndex, StateEditor stateEditor) : base(bm, $"Layer {layerIndex}")
+            {
+                this.LayerIndex = layerIndex;
+                this._stateEditor = stateEditor;
+
+                Click += Clicked;
+            }
+
+            private void Clicked(object sender, EventArgs e)
+            {
+                _stateEditor.SelectLayer(LayerIndex);
+            }
         }
     }
 }

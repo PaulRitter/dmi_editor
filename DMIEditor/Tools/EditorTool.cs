@@ -17,7 +17,7 @@ namespace DMIEditor.Tools
         }
 
         //returns true if bitmap was changed
-        public virtual bool pixelAct(ref Bitmap current, int x, int y) { return false; }
+        public virtual bool pixelAct(Bitmap current, int x, int y) { return false; }
 
         public override string ToString()
         {
