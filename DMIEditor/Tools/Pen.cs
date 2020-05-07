@@ -12,7 +12,7 @@ namespace DMIEditor.Tools
 
         public override bool pixelAct(ref Bitmap bitmap, int x, int y)
         {
-            bitmap.SetPixel(x, y, main.getColor());
+            bitmap.SetPixel(x, y, main.GetColor());
             return true;
         }
     }

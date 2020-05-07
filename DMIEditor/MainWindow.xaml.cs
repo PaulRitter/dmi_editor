@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Drawing;
 using DMI_Parser;
-using System.Linq;
 using DMIEditor.Tools;
 using System.Reflection;
 using Microsoft.Win32;
@@ -21,19 +20,14 @@ namespace DMIEditor
 
     public partial class MainWindow : Window
     {
-        private List<FileEditor> editors = new List<FileEditor>();
-        private EditorTool selectedTool;
-
-        [DllImport("user32.dll")]
-        public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
-        [DllImport("user32.dll")]
-        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        private List<FileEditor> _editors = new List<FileEditor>();
+        private EditorTool _selectedTool;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            openFileBtn.Click += openFileDialog;
+            openFileBtn.Click += OpenFileDialog;
 
             IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType == typeof(EditorTool) );
 
@@ -44,16 +38,13 @@ namespace DMIEditor
             foreach (Type toolType in toolTypes)
             {
                 EditorTool tool = (EditorTool)Activator.CreateInstance(toolType, this);
-                TextBlock txt = new TextBlock();
-                txt.Text = tool.ToString();
-                ToolButton btn = new ToolButton(tool);
-                btn.Content = txt;
-                btn.GroupName = "tools";
-                btn.Click += toolBtnClicked;
+                TextBlock txt = new TextBlock {Text = tool.ToString()};
+                ToolButton btn = new ToolButton(tool) {Content = txt, GroupName = "tools"};
+                btn.Click += ToolBtnClicked;
                 if (first)
                 {
                     btn.IsChecked = true;
-                    selectedTool = tool;
+                    _selectedTool = tool;
                     first = false;
                 }
 
@@ -73,7 +64,7 @@ namespace DMIEditor
             //loadFile("D:/Workspaces/Github/vgstation13/icons/effects/alphacolors.dmi");
         }
 
-        private FileEditor selectedEditor
+        private FileEditor SelectedEditor
         {
             get
             {
@@ -88,13 +79,13 @@ namespace DMIEditor
             }
         }
 
-        private void toolBtnClicked(object sender, EventArgs e)
+        private void ToolBtnClicked(object sender, EventArgs e)
         {
             ToolButton btn = (ToolButton)sender;
-            selectedTool = btn.tool;
+            _selectedTool = btn.Tool;
         }
 
-        public Color getColor()
+        public Color GetColor()
         {
             if(!colorPicker.SelectedColor.HasValue)
                 return Color.Black;
@@ -102,48 +93,51 @@ namespace DMIEditor
             return Color.FromArgb(mc.A, mc.R, mc.G, mc.B);
         }
 
-        public void setColor(Color c)
+        public void SetColor(Color c)
         {
             System.Windows.Media.Color mc = System.Windows.Media.Color.FromArgb(c.A, c.R, c.G, c.B);
             colorPicker.SelectedColor = mc;
         }
 
-        public EditorTool getTool()
+        public EditorTool GetTool()
         {
-            return selectedTool;
+            return _selectedTool;
         }
 
-        public void openFileDialog(object sender, EventArgs e)
+        public void OpenFileDialog(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "DMI files (*.dmi)|*.dmi";
-            ofd.InitialDirectory = @"D:\Workspaces\Github\vgstation13\icons\";
-            ofd.Multiselect = true;
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "DMI files (*.dmi)|*.dmi",
+                InitialDirectory = @"D:\Workspaces\Github\vgstation13\icons\",
+                Multiselect = true
+            };
             if(ofd.ShowDialog() == true)
             {
                 foreach (string path in ofd.FileNames)
                 {
-                    loadFile(path);
+                    LoadFile(path);
                 }
             }
         }
 
-        public void loadFile(String path)
+        public void LoadFile(String path)
         {
             //mobs/animal.dmi skips 2nd line
-            DMI dmiFile = DMI.fromFile(path);
+            Dmi dmiFile = Dmi.FromFile(path);
             FileEditor fE = new FileEditor(dmiFile, this);
             TabItem tabItem = new TabItem();
             
             StackPanel sp = new StackPanel();
-            TextBlock txt = new TextBlock();
-            txt.Text = path.Split(@"\").Last<String>();
-            txt.VerticalAlignment = VerticalAlignment.Center;
+            TextBlock txt = new TextBlock
+            {
+                Text = path.Split(@"\").Last<String>(), VerticalAlignment = VerticalAlignment.Center
+            };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
 
             TabCloseButton cBtn = new TabCloseButton(tabItem);
-            cBtn.Click += closeButtonClicked;
+            cBtn.Click += CloseButtonClicked;
             sp.Children.Add(cBtn);
 
             tabItem.Header = sp;
@@ -155,14 +149,14 @@ namespace DMIEditor
 
         private class ToolButton : RadioButton
         {
-            public readonly EditorTool tool;
+            public readonly EditorTool Tool;
             public ToolButton(EditorTool tool)
             {
-                this.tool = tool;
+                this.Tool = tool;
             }
         }
 
-        private void closeButtonClicked(object sender, EventArgs e)
+        private void CloseButtonClicked(object sender, EventArgs e)
         {
             TabCloseButton tcBtn = (TabCloseButton)sender;
             mainTabControl.Items.Remove(tcBtn.tabItem);

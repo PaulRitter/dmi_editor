@@ -14,7 +14,7 @@ namespace DMIEditor.Tools
         {
             Color oldColor = current.GetPixel(x, y);
 
-            if (oldColor == main.getColor())
+            if (oldColor == main.GetColor())
                 return false;
 
             processPixel(ref current, oldColor, new Point(x,y), new List<Point>());
@@ -41,7 +41,7 @@ namespace DMIEditor.Tools
 
             if (oldColor.Equals(current.GetPixel(pixel.X, pixel.Y)))
             {
-                current.SetPixel(pixel.X, pixel.Y, main.getColor());
+                current.SetPixel(pixel.X, pixel.Y, main.GetColor());
 
                 processPixel(ref current, oldColor, new Point(pixel.X + 1, pixel.Y), alreadyProcessed);
                 processPixel(ref current, oldColor, new Point(pixel.X - 1, pixel.Y), alreadyProcessed);

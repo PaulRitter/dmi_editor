@@ -6,12 +6,12 @@ namespace DMIEditor
 {
     public class ImageSelectionChangedEventArgs : EventArgs
     {
-        public readonly int state, dir, frame;
+        public readonly int State, Dir, Frame;
         public ImageSelectionChangedEventArgs(int state, int dir, int frame)
         {
-            this.state = state;
-            this.dir = dir;
-            this.frame = frame;
+            this.State = state;
+            this.Dir = dir;
+            this.Frame = frame;
         }
     }
 }

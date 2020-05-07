@@ -14,7 +14,7 @@ namespace DMIEditor.Tools
         {
             Color c = current.GetPixel(x, y);
             if(c != Color.Transparent)
-                main.setColor(c);
+                main.SetColor(c);
             return false;
         }
     }

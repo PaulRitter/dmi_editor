@@ -1,0 +1,19 @@
+backend
+- saving
+- optimisation
+- create new file (also backend job)
+- workfiles w/ layers
+-- on load, directory is checked for corresponding dmi & warning when no dmi was found
+--- if dmi was found, synchronize workfile w/ dmi to avoid overriding stuff
+
+frontend
+- copy-paste!!!
+- layers
+- dmi values
+- zoom
+- templates
+- previews
+-- tiling (+lighting)
+- templates (overlay in background, not part of state)
+-- mob
+-- other picked state (ex: cow or whatever)
