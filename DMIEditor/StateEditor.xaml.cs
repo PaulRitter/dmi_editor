@@ -31,11 +31,11 @@ namespace DMIEditor
         public int DirIndex { get; private set; }
         public int FrameIndex { get; private set; }
 
-        public Bitmap SelectedBitmap
+        private Bitmap SelectedBitmap
         {
             get
             {
-                return _layers.First(l => l.Index == _layerIndex).Bitmap;
+                return _layers.Find(l => l.Index == _layerIndex)?.Bitmap;
             }
         }
 
@@ -126,6 +126,8 @@ namespace DMIEditor
         //will try to modify the specified pixel with the selected tool
         private void TryAct(int x, int y)
         {
+            if (SelectedBitmap == null) return;
+            
             if (FileEditor.Main.GetTool().pixelAct(SelectedBitmap, x, y))
                 ReRenderImage();
         }
@@ -156,22 +158,67 @@ namespace DMIEditor
         // =====================
         // =====================
 
-        private void AddLayer(object sender, EventArgs e) => AddLayer(_layerIndex+1, new Bitmap(State.Width, State.Height));
+        private void AddLayer(object sender, EventArgs e)
+        {
+            try
+            {
+                AddLayer(_layerIndex+1, new Bitmap(State.Width, State.Height));
+            }
+            catch (ArgumentException ex)
+            {
+                ErrorPopupHelper.Create(ex);
+            }
+        }
         
         public void AddLayer(int index, Bitmap bitmap)
         {
+            if (index == 0) return; //index 0 is reserved for nothing selected
+            
             foreach (Layer layer in _layers)
             {
                 if(layer.Index == index) throw new ArgumentException("A Layer with that index already exists.");
             }
-            _layers.Add(new Layer(bitmap,index));
+            Layer newLayer = new Layer(bitmap, index);
+            newLayer.Changed += OnLayerChanged;
+            _layers.Add(newLayer);
             _layers.Sort((l1, l2) => l1.CompareTo(l2)); //layers are always sorted from highest index to lowest
             UpdateLayerUi();
             SelectLayer(index);
         }
 
-        public void SelectLayer(int index)
+        public void OnLayerChanged(object sender, EventArgs e)
         {
+            var layer = sender as Layer;
+            if (layer != null)
+            {
+                if (!layer.Visible && layer.Index == _layerIndex)
+                {
+                    int prevIndex = _layerIndex;
+                    foreach (var otherLayer in _layers)
+                    {
+                        if(otherLayer == layer) continue;
+                        if (SelectLayer(otherLayer.Index)) break;
+                    }
+                    if (prevIndex == _layerIndex)
+                    {
+                        SelectLayer(0); //select nothing
+                    }
+                }
+            }
+
+            
+            UpdateLayerUi();
+            ReRenderImage();
+        }
+
+        public bool SelectLayer(int index)
+        {
+            if (index != 0){
+                if(GetLayer(index) == null) return false;
+                
+                if(!GetLayer(index).Visible) return false;
+            }
+            
             _layerIndex = index;
             foreach (var btn in _layerButtons)
             {
@@ -184,8 +231,15 @@ namespace DMIEditor
                     btn.SetPressed(false);
                 }
             }
+
+            return true;
         }
 
+        public Layer GetLayer(int index)
+        {
+            return _layers.Find(l => l.Index == index);
+        }
+        
         public void UpdateLayerUi()
         {
             LayerStackPanel.Children.Clear();
@@ -208,19 +262,21 @@ namespace DMIEditor
             addBtn.Click += AddLayer;
             LayerStackPanel.Children.Add(addBtn);
         }
-        
+
         //updates the image display
+
         //very inefficient, needs to be reworked!!! somehow permanently uses up more and more ram
+
         public void UpdateImageDisplay()
         {
             _layers = new List<Layer>();
             UpdateLayerUi();
             
-            AddLayer(0, State.getImage(DirIndex, FrameIndex));
+            AddLayer(1, State.getImage(DirIndex, FrameIndex));
 
             ReRenderImage();
         }
-
+        
         public void ReRenderImage()
         {
             Bitmap actual = new Bitmap(State.Width * 2, State.Height * 2);
@@ -230,6 +286,8 @@ namespace DMIEditor
                 {
                     foreach (Layer layer in _layers)
                     {
+                        if (!layer.Visible) continue;
+                        
                         int actualX = x * 2;
                         int actualY = y * 2;
                         Color c = layer.Bitmap.GetPixel(x, y);
@@ -259,10 +317,25 @@ namespace DMIEditor
         {
             public readonly int LayerIndex;
             private readonly StateEditor _stateEditor;
+            private TextBlock visibleText = new TextBlock();
             public LayerButton(Bitmap bm, int layerIndex, StateEditor stateEditor) : base(bm, $"Layer {layerIndex}")
             {
                 this.LayerIndex = layerIndex;
                 this._stateEditor = stateEditor;
+
+                StackPanel sp = (StackPanel) Content;
+
+                if (_stateEditor.GetLayer(LayerIndex).Visible)
+                    visibleText.Text = "Hide";
+                else
+                    visibleText.Text = "Show";
+
+                Button visibleBtn = new Button
+                {
+                    Content = visibleText
+                };
+                sp.Children.Add(visibleBtn);
+                visibleBtn.Click += ToggleVisibility;
 
                 Click += Clicked;
             }
@@ -270,6 +343,11 @@ namespace DMIEditor
             private void Clicked(object sender, EventArgs e)
             {
                 _stateEditor.SelectLayer(LayerIndex);
+            }
+
+            private void ToggleVisibility(object sender, EventArgs e)
+            {
+                _stateEditor.GetLayer(LayerIndex).Visible = !_stateEditor.GetLayer(LayerIndex).Visible; //this change will automatically trigger the redo of the entire layer ui
             }
         }
     }

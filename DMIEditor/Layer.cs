@@ -8,14 +8,29 @@ namespace DMIEditor
         public readonly Bitmap Bitmap;
 
         private int _index;
+        private bool _visible = true;
+
+        public bool Visible
+        {
+            get => _visible;
+            set
+            {
+                _visible = value;
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         public int Index
         {
-            get { return _index; }
-            // set
-            // {
-            //     
-            // }
+            get => _index;
+            set
+            {
+                _index = value;
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
         }
+
+        public event EventHandler Changed;
 
         public Layer(Bitmap bitmap, int index)
         {
