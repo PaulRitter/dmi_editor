@@ -123,15 +123,24 @@ namespace DMIEditor
 
         public void LoadFile(String path)
         {
-            //mobs/animal.dmi skips 2nd line
-            Dmi dmiFile = Dmi.FromFile(path);
+            Dmi dmiFile;
+            try
+            {
+                dmiFile = Dmi.FromFile(path);
+            }
+            catch (ParsingException e)
+            {
+                ErrorPopupHelper.Create(e);
+                return;
+            }
+            
             FileEditor fE = new FileEditor(dmiFile, this);
             TabItem tabItem = new TabItem();
             
             StackPanel sp = new StackPanel();
             TextBlock txt = new TextBlock
             {
-                Text = path.Split(@"\").Last<String>(), VerticalAlignment = VerticalAlignment.Center
+                Text = path.Split(@"\").Last(), VerticalAlignment = VerticalAlignment.Center
             };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
