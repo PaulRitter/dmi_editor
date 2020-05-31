@@ -5,6 +5,7 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
+    //TODO hotspot-tool
     public abstract class EditorTool
     {
         public abstract string Name { get; }
