@@ -3,20 +3,23 @@ using System.Drawing;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Image = System.Windows.Controls.Image;
 
 namespace DMIEditor
 {
     public class LabeledImageButton : Button
     {
         private bool _pressed = false;
-
+        protected Image img;
+        protected TextBlock label;
+        private StackPanel _stackPanel;
         public LabeledImageButton(Bitmap bm, string labeltext)
         {
             //create stackpanel
-            StackPanel stackPanel = new StackPanel();
+            _stackPanel = new StackPanel();
 
             //create image
-            System.Windows.Controls.Image img = new System.Windows.Controls.Image
+            img = new Image
             {
                 Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
                     bm.GetHbitmap(),
@@ -27,18 +30,18 @@ namespace DMIEditor
                 Stretch = Stretch.None
             };
             //add to stackpanel
-            stackPanel.Children.Add(img);
+            _stackPanel.Children.Add(img);
 
             //create label
-            TextBlock label = new TextBlock
+            label = new TextBlock
             {
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center, Text = labeltext
             };
             //add to stackpanel
-            stackPanel.Children.Add(label);
+            _stackPanel.Children.Add(label);
 
             //add stackpanel to btn
-            Content = stackPanel;
+            Content = _stackPanel;
 
             //layout stuff
             Margin = new System.Windows.Thickness(3);

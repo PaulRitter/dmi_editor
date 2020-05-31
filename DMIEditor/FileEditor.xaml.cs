@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Transactions;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,7 +20,6 @@ namespace DMIEditor
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
-        private List<ImageSelectionButton> _frameButtons = new List<ImageSelectionButton>();
 
         public FileEditor(Dmi dmi, MainWindow main)
         {
@@ -31,15 +31,12 @@ namespace DMIEditor
             for (int i = 0; i < dmi.States.Count; i++)
             {
                 Bitmap bm = dmi.States[i].getImage(0, 0);
-                StateButton btn = new StateButton(this, i, bm, $"\"{dmi.States[i].Id}\"" + (bm == null ? "Bitmap was null!!!" : ""));
+                StateButton btn = new StateButton(this, i, bm, dmi.States[i]);
                 statePanel.Children.Add(btn);
                 _stateButtons.Add(btn);
             }
 
             //image selection hotkeys
-            statePanel.KeyDown += ImageSelectionKeyHandler;
-            KeyDown += ImageSelectionKeyHandler;
-            dirPanel.KeyDown += ImageSelectionKeyHandler;
             stateTabControl.SelectionChanged += UpdateStateUi;
         }
 
@@ -74,9 +71,6 @@ namespace DMIEditor
 
             tItem.Header = sp;
             tItem.IsSelected = true;
-            stateEditor.KeyDown += ImageSelectionKeyHandler;
-            stateEditor.ImageSelectionChanged += UpdateFrameButtons;
-            tItem.KeyDown += ImageSelectionKeyHandler;
             UpdateStateUi();
         }
 
@@ -94,7 +88,7 @@ namespace DMIEditor
         }
 
         // handles arrow keys for image selection
-        private void ImageSelectionKeyHandler(object sender, KeyEventArgs e)
+        /*private void ImageSelectionKeyHandler(object sender, KeyEventArgs e)
         {
             //getting currently selected Tab
             StateEditorTabItem currentTab = (StateEditorTabItem)stateTabControl.SelectedItem;
@@ -122,7 +116,7 @@ namespace DMIEditor
             }
 
             editor.SetImage(editor.DirIndex + offset.X, editor.FrameIndex + offset.Y);
-        }
+        }*/
 
         private void UpdateStateUi(object sender, EventArgs e) => UpdateStateUi();
 
@@ -158,55 +152,6 @@ namespace DMIEditor
                     button.SetPressed(false);
                 }
             }
-
-            //create dir and frame buttons
-            dirPanel.Children.Clear();
-
-            if (currentTab == null) return; //nothing else to do from here on out if we dont have a selected state
-
-            for (int d = 0; d < (int)currentTab.StateEditor.State.Dirs; d++)
-            {
-                Border b = new Border
-                {
-                    BorderThickness = new System.Windows.Thickness(0.5d),
-                    BorderBrush = System.Windows.Media.Brushes.Black
-                };
-                StackPanel framePanel = new StackPanel();
-                TextBlock title = new TextBlock
-                {
-                    Text = $"Dir {d + 1}", HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                };
-                framePanel.Children.Add(title);
-                for (int f = 0; f < currentTab.StateEditor.State.Frames; f++)
-                {
-                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, currentTab.StateEditor.State.getImage(d, f), $"Frame {f+1}");
-                    framePanel.Children.Add(frameButton);
-                    _frameButtons.Add(frameButton);
-                }
-                b.Child = framePanel;
-                dirPanel.Children.Add(b);
-            }
-            //sets the proper layout for the buttons
-            UpdateFrameButtons(currentTab.StateEditor.DirIndex,currentTab.StateEditor.FrameIndex);
-        }
-
-
-        private void UpdateFrameButtons(object sender, ImageSelectionChangedEventArgs e)
-        {
-            UpdateFrameButtons(e.Dir, e.Frame);
-        }
-
-        private void UpdateFrameButtons(int dir, int frame)
-        {
-            foreach (ImageSelectionButton btn in _frameButtons.Where<ImageSelectionButton>(btn => btn.isPressed()))
-            {
-                btn.SetPressed(false);
-            }
-
-            foreach (ImageSelectionButton btn in _frameButtons.Where<ImageSelectionButton>(btn => btn.DirIndex == dir && btn.FrameIndex == frame))
-            {
-                btn.SetPressed(true);
-            }
         }
 
         // helper to calculate from screen pixel pos -> bitmap pixel pos
@@ -221,13 +166,17 @@ namespace DMIEditor
             //stateindex
             public readonly int stateIndex;
             private bool _pressed = false;
-            public StateButton(FileEditor fileEditor, int stateIndex, Bitmap bm, string labeltext) : base(bm,labeltext)
+            public StateButton(FileEditor fileEditor, int stateIndex, Bitmap bm, DMIState state) : base(bm,$"\"{state.Id}\"" + (bm == null ? "Bitmap was null!!!" : ""))
             {
                 this.stateIndex = stateIndex;
                 this.FileEditor = fileEditor;
                 
                 //register click event
                 Click += Clicked;
+                state.idChanged += (sender, args) =>
+                {
+                    label.Text = $"\"{state.Id}\"";
+                };
             }
 
             protected virtual void Clicked(object sender, EventArgs e)
@@ -236,24 +185,7 @@ namespace DMIEditor
             }
         }
 
-        private class ImageSelectionButton : LabeledImageButton
-        {
-            public readonly FileEditor FileEditor;
-            public readonly int DirIndex;
-            public readonly int FrameIndex;
-            public ImageSelectionButton(FileEditor fileEditor, int dirIndex, int frameIndex, Bitmap bm, string labeltext) : base (bm, labeltext)
-            {
-                this.DirIndex = dirIndex;
-                this.FrameIndex = frameIndex;
-                this.FileEditor = fileEditor;
-                Click += Clicked;
-            }
-            protected void Clicked(object sender, EventArgs e)
-            {
-                StateEditorTabItem item = (StateEditorTabItem)FileEditor.stateTabControl.SelectedItem;
-                item?.StateEditor.SetImage(DirIndex, FrameIndex);
-            }
-        }
+        
 
         private class StateEditorTabItem : TabItem
         {

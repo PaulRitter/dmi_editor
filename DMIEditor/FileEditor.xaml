@@ -11,18 +11,7 @@
             <RowDefinition Height="70*"/>
             <RowDefinition Height="30*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="60*"/>
-                <ColumnDefinition Width="40*"/>
-            </Grid.ColumnDefinitions>
-            <TabControl Grid.Column="0" x:Name="stateTabControl"/>
-            <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                    <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
-                </ScrollViewer>
-            </Border>
-        </Grid>
+        <TabControl Grid.Row="0" x:Name="stateTabControl"/>
         <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0.2">
             <ScrollViewer  VerticalScrollBarVisibility="Auto">
                 <WrapPanel Name="statePanel">

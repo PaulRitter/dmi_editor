@@ -104,12 +104,12 @@ namespace DMIEditor
             return _selectedTool;
         }
 
-        public void OpenFileDialog(object sender, EventArgs e)
+        public void OpenFileDialog(object sender, EventArgs e) 
         {
+            //TODO remember initial dir
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "DMI files (*.dmi)|*.dmi",
-                InitialDirectory = @"D:\Workspaces\Github\vgstation13\icons\",
                 Multiselect = true
             };
             if(ofd.ShowDialog() == true)
