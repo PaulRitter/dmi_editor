@@ -18,13 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DMI_Parser">
-      <HintPath>..\..\..\VSC\C#\DMI_Parser\bin\Debug\netstandard2.0\DMI_Parser.dll</HintPath>
-    </Reference>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\dmi_parser\DMI_Parser.csproj" />
   </ItemGroup>
 
 </Project>
