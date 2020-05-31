@@ -1,0 +1,3 @@
+[submodule "dmi_parser"]
+	path = dmi_parser
+	url = https://github.com/PaulRitter/dmi_parser.git
