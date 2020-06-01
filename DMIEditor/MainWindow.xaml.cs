@@ -29,9 +29,9 @@ namespace DMIEditor
 
             openFileBtn.Click += OpenFileDialog;
 
-            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType == typeof(EditorTool) );
+            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) );
 
-            EditorTool[] tools = { new Tools.Pen(this), new Eraser(this), new Fill(this) , new Pipette(this) };
+            //EditorTool[] tools = { new Tools.Pen(this), new Eraser(this), new Fill(this) , new Pipette(this) };
 
             bool first = true;
             bool left = true;
@@ -64,7 +64,7 @@ namespace DMIEditor
             //loadFile("D:/Workspaces/Github/vgstation13/icons/effects/alphacolors.dmi");
         }
 
-        private FileEditor SelectedEditor
+        public FileEditor SelectedEditor
         {
             get
             {

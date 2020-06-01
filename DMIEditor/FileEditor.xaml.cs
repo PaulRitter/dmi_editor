@@ -120,6 +120,8 @@ namespace DMIEditor
 
         private void UpdateStateUi(object sender, EventArgs e) => UpdateStateUi();
 
+        public StateEditor selectedStateEditor => ((StateEditorTabItem) stateTabControl.SelectedItem).StateEditor;
+
         //called when the state changed, does NOT update the image, just the ui!
         private void UpdateStateUi()
         {
@@ -165,7 +167,6 @@ namespace DMIEditor
             protected readonly FileEditor FileEditor;
             //stateindex
             public readonly int stateIndex;
-            private bool _pressed = false;
             public StateButton(FileEditor fileEditor, int stateIndex, Bitmap bm, DMIState state) : base(bm,$"\"{state.Id}\"" + (bm == null ? "Bitmap was null!!!" : ""))
             {
                 this.stateIndex = stateIndex;

@@ -5,12 +5,12 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Pen : EditorTool
+    public class Pen : PixelTool
     {
         public override string Name => "Pen";
         public Pen(MainWindow main) : base(main) { }
 
-        public override bool pixelAct(Bitmap bitmap, int x, int y)
+        public override bool PixelAct(Bitmap bitmap, int x, int y)
         {
             bitmap.SetPixel(x, y, main.GetColor());
             return true;

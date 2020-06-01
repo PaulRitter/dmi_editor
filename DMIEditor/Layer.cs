@@ -38,7 +38,7 @@ namespace DMIEditor
             _index = index;
         }
 
-
+        #nullable enable
         public int CompareTo(object? obj)
         {
             if (obj == null) return 1;

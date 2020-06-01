@@ -5,12 +5,12 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Eraser : EditorTool
+    public class Eraser : PixelTool
     {
         public override string Name => "Eraser";
         public Eraser(MainWindow main) : base(main) { }
 
-        public override bool pixelAct(Bitmap bitmap, int x, int y)
+        public override bool PixelAct(Bitmap bitmap, int x, int y)
         {
             bitmap.SetPixel(x, y, Color.Transparent);
             return true;

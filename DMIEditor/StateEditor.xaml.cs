@@ -8,8 +8,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DMI_Parser;
+using DMIEditor.Tools;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
+using Point = System.Drawing.Point;
 
 namespace DMIEditor
 {
@@ -81,21 +83,31 @@ namespace DMIEditor
             SetImage(0,0);
 
             //create stateValue editUI
+            CreateStateValueEditor();
             
+            //subscribe to state events
+            State.dirCountChanged += OnDirCountChanged;
+            State.frameCountChanged += OnFrameCountChanged;
+            
+            //TODO delays (maybe add into frame selection)
+        }
+
+        private void CreateStateValueEditor()
+        {
             //stateID
-            var idBox = new TextBox {Text = state.Id};
+            var idBox = new TextBox {Text = State.Id};
             idBox.KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.Enter)
                 {
                     try
                     {
-                        state.setID(idBox.Text);
+                        State.setID(idBox.Text);
                     }
                     catch (ArgumentException)
                     {
                         ErrorPopupHelper.Create($"StateID \"{idBox.Text}\" is not valid!");
-                        idBox.Text = state.Id;
+                        idBox.Text = State.Id;
                     }                   
                 }
             };
@@ -107,14 +119,13 @@ namespace DMIEditor
             {
                 dirCountBox.Items.Add(dir);
             }
-            dirCountBox.SelectedItem = state.Dirs;
+            dirCountBox.SelectedItem = State.Dirs;
             dirCountBox.SelectionChanged += (sender, args) =>
             {
-                state.setDirs((DirCount) dirCountBox.SelectedItem);
+                State.setDirs((DirCount) dirCountBox.SelectedItem);
             };
             stateValues.Children.Add(dirCountBox);
-            //subscribe to event
-            state.dirCountChanged += OnDirCountChanged;
+            
 
             //frame count
             var frameCountEditor = new IntegerUpDown()
@@ -122,13 +133,13 @@ namespace DMIEditor
                 Minimum = 1,
                 Increment = 1,
                 Maximum = 30, //arbitrary number, why would you ever need more than this?
-                Value = state.Frames
+                Value = State.Frames
             };
             frameCountEditor.ValueChanged += (sender, args) =>
             {
                 var frames = frameCountEditor.Value;
                 if(frames != null)
-                    state.setFrames(frames.Value);
+                    State.setFrames(frames.Value);
             };
             var p = new StackPanel()
             {
@@ -137,8 +148,6 @@ namespace DMIEditor
             p.Children.Add(new TextBlock(){Text = "Frame count: "});
             p.Children.Add(frameCountEditor);
             stateValues.Children.Add(p);
-            //subscribe to event
-            state.frameCountChanged += OnFrameCountChanged;
 
             //loop
             var loopCountEditor = new IntegerUpDown()
@@ -146,17 +155,17 @@ namespace DMIEditor
                 Minimum = 0,
                 Increment = 1,
                 Maximum = 30,
-                Value = state.Loop
+                Value = State.Loop
             };
             var infiniteIndicator = new TextBlock()
             {
-                Text = state.Loop == 0 ? "(Infinite)" : ""
+                Text = State.Loop == 0 ? "(Infinite)" : ""
             };
             loopCountEditor.ValueChanged += (sender, args) =>
             {
                 infiniteIndicator.Text = loopCountEditor.Value == 0 ? "(Infinite)" : "";
 
-                state.setLoop(loopCountEditor.Value.Value);
+                State.setLoop(loopCountEditor.Value.Value);
             };
             p = new StackPanel()
             {
@@ -170,11 +179,11 @@ namespace DMIEditor
             //rewind
             var rewindBox = new CheckBox()
             {
-                IsChecked = state.Rewind
+                IsChecked = State.Rewind
             };
             rewindBox.Click += (sender, args) =>
             {
-                state.setRewind(rewindBox.IsChecked.Value);
+                State.setRewind(rewindBox.IsChecked.Value);
             };
             p = new StackPanel()
             {
@@ -183,10 +192,8 @@ namespace DMIEditor
             p.Children.Add(new TextBlock(){Text = "Rewind: "});
             p.Children.Add(rewindBox);
             stateValues.Children.Add(p);
-
-            //TODO delays (maybe add into frame selection)
         }
-
+        
         private void OnDirCountChanged(object sender, EventArgs e)
         {
             CreateImageButtons();
@@ -270,20 +277,69 @@ namespace DMIEditor
                 UpdateImageDisplay();
                 UpdateFrameButtonsPressState();
             }
-                
         }
 
         // =====================
         // =====================
         // Tool handling
         private bool _mouseHeld; //tracks wether or not left mouse button is held
+        private Point? _startingPoint;
+
+        //todo implement strg+z
+        
+        private bool IsPointValid(Point p)
+        {
+            if (SelectedBitmap == null) return false;
+            if (p.X < 0 || p.X > SelectedBitmap.Width) return false;
+            if (p.Y < 0 || p.Y > SelectedBitmap.Height) return false;
+
+            return true;
+        }
 
         //will try to modify the specified pixel with the selected tool
-        private void TryAct(int x, int y)
+        private void TryPixelAct(Point point)
         {
-            if (SelectedBitmap == null) return;
+            if (!IsPointValid(point)) return; //todo throw exception here
             
-            if (_fileEditor.Main.GetTool().pixelAct(SelectedBitmap, x, y))
+            EditorTool tool = _fileEditor.Main.GetTool();
+            if(tool is PixelTool pixelTool && pixelTool.PixelAct(SelectedBitmap, point.X, point.Y))
+                ReRenderImage();
+        }
+
+        private void TryAreaAct(Point start, Point end)
+        {
+            if (!IsPointValid(start) || !IsPointValid(end)) return; //todo throw exception here
+
+            EditorTool tool = _fileEditor.Main.GetTool();
+            if (!(tool is AreaTool areaTool)) return;
+            
+            int x;
+            int width;
+            if (start.X < end.X)
+            {
+                x = start.X;
+                width = end.X - start.X;
+            }
+            else
+            {
+                x = end.X;
+                width = start.X - end.X;
+            }
+
+            int y;
+            int height;
+            if (start.Y < end.Y)
+            {
+                y = start.Y;
+                height = end.Y - start.Y;
+            }
+            else
+            {
+                y = end.Y;
+                height = start.Y - end.Y;
+            }
+
+            if (areaTool.AreaAct(SelectedBitmap, x, y, width, height))
                 ReRenderImage();
         }
 
@@ -291,24 +347,36 @@ namespace DMIEditor
         private void OnLeftMouseDown(object sender, MouseEventArgs e)
         {
             _mouseHeld = true;
-            System.Windows.Point wP = e.GetPosition(img);
-            TryAct(FileEditor.RealPos(wP.X), FileEditor.RealPos(wP.Y));
+            System.Windows.Point p = e.GetPosition(img);
+            _startingPoint = new Point(FileEditor.RealPos(p.X), FileEditor.RealPos(p.Y));
+
+            if (_fileEditor.Main.GetTool() is PixelTool pixelTool)
+            {
+                TryPixelAct(_startingPoint.Value);
+                _startingPoint = null;
+            }
         }
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (_mouseHeld)
+            if (_mouseHeld && _fileEditor.Main.GetTool() is PixelTool pixelTool)
             {
                 System.Windows.Point wP = e.GetPosition(img);
-                TryAct(FileEditor.RealPos(wP.X), FileEditor.RealPos(wP.Y));
+                TryPixelAct(new Point(FileEditor.RealPos(wP.X), FileEditor.RealPos(wP.Y)));
             }
         }
         private void OnLeftMouseUp(object sender, MouseEventArgs e)
         {
+            if (_mouseHeld && _startingPoint != null)
+            {
+                System.Windows.Point wp = e.GetPosition(img);
+                TryAreaAct(_startingPoint.Value, new Point(FileEditor.RealPos(wp.X), FileEditor.RealPos(wp.Y)));
+            }
+
             _mouseHeld = false;
         }
         private void OnMouseExit(object sender, MouseEventArgs e)
         {
-            _mouseHeld = false;
+            OnLeftMouseUp(sender, e);
         }
         // =====================
         // =====================

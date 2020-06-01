@@ -5,7 +5,6 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    //TODO hotspot-tool
     public abstract class EditorTool
     {
         public abstract string Name { get; }
@@ -16,9 +15,6 @@ namespace DMIEditor.Tools
         {
             this.main = main;
         }
-
-        //returns true if bitmap was changed
-        public virtual bool pixelAct(Bitmap current, int x, int y) { return false; }
 
         public override string ToString()
         {

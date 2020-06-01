@@ -7,7 +7,8 @@ namespace DMIEditor
     {
         public static void Create(Exception e)
         {
-            MessageBox.Show(e.ToString(), "Exception occured", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(e.Message, "Exception occured", MessageBoxButton.OK, MessageBoxImage.Error);
+            Console.WriteLine(e);
         }
 
         public static void Create(String e)

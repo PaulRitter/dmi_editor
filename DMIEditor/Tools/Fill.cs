@@ -5,12 +5,12 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Fill : EditorTool
+    public class Fill : PixelTool
     {
         public override string Name => "Fill";
         public Fill(MainWindow main) : base(main) { }
 
-        public override bool pixelAct(Bitmap current, int x, int y)
+        public override bool PixelAct(Bitmap current, int x, int y)
         {
             Color oldColor = current.GetPixel(x, y);
 
