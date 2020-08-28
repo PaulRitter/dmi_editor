@@ -106,7 +106,6 @@ namespace DMIEditor
 
         public void OpenFileDialog(object sender, EventArgs e) 
         {
-            //TODO remember initial dir
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "DMI files (*.dmi)|*.dmi",

@@ -1,17 +1,17 @@
 backend
 - saving
 - optimisation
-- create new file (also backend job)
-- workfiles w/ layers
+- create new file
+- workfiles w/ layers (find a way to save additional information like layers)
 -- on load, directory is checked for corresponding dmi & warning when no dmi was found
 --- if dmi was found, synchronize workfile w/ dmi to avoid overriding stuff
 
 frontend
+- fix memory leak (iirc on drawing/changing picture)
 - copy-paste!!!
 - layers
 - dmi values
 - zoom
-- templates
 - previews
 -- tiling (+lighting)
 - templates (overlay in background, not part of state)
