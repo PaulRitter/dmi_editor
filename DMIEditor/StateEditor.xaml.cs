@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,9 +10,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DMI_Parser;
 using DMIEditor.Tools;
+using ImageProcessor;
+using ImageProcessor.Imaging;
+using ImageProcessor.Imaging.Formats;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
+using ResizeMode = System.Windows.ResizeMode;
 
 namespace DMIEditor
 {
@@ -488,36 +493,36 @@ namespace DMIEditor
 
         private void ReRenderImage()
         {
-            var actual = new Bitmap(State.Width * 2, State.Height * 2);
-            for (var x = 0; x < State.Width; x++)
+            ImageFactory imgF = new ImageFactory();
+            bool first = true;
+
+            for (int i = 0; i < _layers.Count; i++)
             {
-                for (var y = 0; y < State.Height; y++)
+                if (!_layers[i].Visible) continue;
+
+                if (first)
                 {
-                    foreach (var layer in _layers)
-                    {
-                        if (!layer.Visible) continue;
-                        
-                        var actualX = x * 2;
-                        var actualY = y * 2;
-                        var c = layer.Bitmap.GetPixel(x, y);
-                        //TODO adding colors
-                        
-                        if (c.ToArgb() == 0) continue;
-                        
-                        actual.SetPixel(actualX, actualY, c);
-                        actual.SetPixel(actualX+1,actualY,c);
-                        actual.SetPixel(actualX, actualY+1, c);
-                        actual.SetPixel(actualX+1,actualY+1,c);
-                        break;
-                    }
+                    imgF.Load(_layers[i].Bitmap);
+                    first = false;
+                    continue;
                 }
+
+                ImageLayer l = new ImageLayer();
+                l.Image = _layers[i].Bitmap;
+                imgF.Overlay(l);
             }
-            
-            img.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                actual.GetHbitmap(),
-                IntPtr.Zero,
-                Int32Rect.Empty,
-                BitmapSizeOptions.FromWidthAndHeight(actual.Width, actual.Height));
+            imgF.Format(new PngFormat());
+            imgF.BackgroundColor(Color.Transparent);
+
+            MemoryStream stream = new MemoryStream(); 
+            imgF.Save(stream);
+
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+
+            img.Source = bitmap;
 
             UpdateLayerUi();
         }
