@@ -496,6 +496,7 @@ namespace DMIEditor
             ImageFactory imgF = new ImageFactory();
             bool first = true;
 
+            //todo account for index
             for (int i = 0; i < _layers.Count; i++)
             {
                 if (!_layers[i].Visible) continue;
