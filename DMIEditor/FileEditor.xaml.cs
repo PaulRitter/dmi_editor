@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Transactions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -154,12 +155,6 @@ namespace DMIEditor
                     button.SetPressed(false);
                 }
             }
-        }
-
-        // helper to calculate from screen pixel pos -> bitmap pixel pos
-        public static int RealPos(double p)
-        {
-            return (int)Math.Floor(p / 2d);
         }
 
         private class StateButton : LabeledImageButton

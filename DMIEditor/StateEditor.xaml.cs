@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -61,7 +62,7 @@ namespace DMIEditor
             img.MouseMove += OnMouseMove;
 
             //creating background map (tiling)
-            var backgroundMap = new Bitmap(State.Width * 2, State.Height * 2);
+            var backgroundMap = new Bitmap(State.Width*2, State.Height*2);
             var s = true;
             for (var i = 0; i < backgroundMap.Width; i++)
             {
@@ -73,12 +74,19 @@ namespace DMIEditor
                 }
                 s = !s; //offsetting every row
             }
-            
-            backgroundImg.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-               backgroundMap.GetHbitmap(),
-               IntPtr.Zero,
-               Int32Rect.Empty,
-               BitmapSizeOptions.FromWidthAndHeight(backgroundMap.Width, backgroundMap.Height));
+
+            ImageFactory imgF = new ImageFactory().Load(backgroundMap);
+            imgF.Resolution(State.Width * 2, State.Height * 2);
+
+            MemoryStream stream = new MemoryStream(); 
+            imgF.Save(stream);
+
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+
+            backgroundImg.Source = bitmap;
             
             CreateImageButtons();
             
@@ -352,8 +360,7 @@ namespace DMIEditor
         private void OnLeftMouseDown(object sender, MouseEventArgs e)
         {
             _mouseHeld = true;
-            System.Windows.Point p = e.GetPosition(img);
-            _startingPoint = new Point(FileEditor.RealPos(p.X), FileEditor.RealPos(p.Y));
+            _startingPoint = BitmapPoint(e);
 
             if (_fileEditor.Main.GetTool() is PixelTool pixelTool)
             {
@@ -365,16 +372,14 @@ namespace DMIEditor
         {
             if (_mouseHeld && _fileEditor.Main.GetTool() is PixelTool pixelTool)
             {
-                System.Windows.Point wP = e.GetPosition(img);
-                TryPixelAct(new Point(FileEditor.RealPos(wP.X), FileEditor.RealPos(wP.Y)));
+                TryPixelAct(BitmapPoint(e));
             }
         }
         private void OnLeftMouseUp(object sender, MouseEventArgs e)
         {
             if (_mouseHeld && _startingPoint != null)
             {
-                System.Windows.Point wp = e.GetPosition(img);
-                TryAreaAct(_startingPoint.Value, new Point(FileEditor.RealPos(wp.X), FileEditor.RealPos(wp.Y)));
+                TryAreaAct(_startingPoint.Value, BitmapPoint(e));
             }
 
             _mouseHeld = false;
@@ -383,6 +388,20 @@ namespace DMIEditor
         {
             OnLeftMouseUp(sender, e);
         }
+        
+        // helpers to calculate from screen pixel pos -> bitmap pixel pos
+        public Point BitmapPoint(MouseEventArgs e)
+        {
+            System.Windows.Point wP = e.GetPosition(img);
+            int x = (int) Math.Floor(wP.X * (State.Width / 96d));
+            int y = (int)Math.Floor(wP.Y*(State.Height/96d));
+
+            x = x < State.Width ? x : State.Width - 1;
+            y = y < State.Height ? y : State.Height - 1;
+            
+            return new Point(x, y);
+        }
+
         // =====================
         // =====================
 
@@ -496,22 +515,25 @@ namespace DMIEditor
             ImageFactory imgF = new ImageFactory();
             bool first = true;
 
-            //todo account for index
+            //just to make sure
+            _layers.Sort((l1,l2)=>l1.Index.CompareTo(l2.Index));
             for (int i = 0; i < _layers.Count; i++)
             {
-                if (!_layers[i].Visible) continue;
-
+                Layer layer = _layers[i];
+                if (!layer.Visible) continue;
                 if (first)
                 {
-                    imgF.Load(_layers[i].Bitmap);
+                    imgF.Load(layer.Bitmap);
                     first = false;
                     continue;
                 }
 
                 ImageLayer l = new ImageLayer();
-                l.Image = _layers[i].Bitmap;
+                l.Image = layer.Bitmap;
                 imgF.Overlay(l);
             }
+
+            imgF.Resolution(State.Width, State.Height);
             imgF.Format(new PngFormat());
             imgF.BackgroundColor(Color.Transparent);
 
