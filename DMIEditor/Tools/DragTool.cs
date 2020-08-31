@@ -27,9 +27,7 @@ namespace DMIEditor.Tools
 
             Task.Run(() =>
             {
-                Console.WriteLine("start");
                 Task.Delay(1000, _cancelToken.Token).Wait();
-                Console.WriteLine("end");
                 _mouseHeld = false;
             });
         }
