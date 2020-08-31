@@ -12,11 +12,10 @@ namespace DMIEditor.Tools
         public override bool onSelected() => true;
 
         private bool _mouseHeld;
-        private CancellationTokenSource _cancelToken;
 
-        public override void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed)
+        public override void onMouseEnter(DmiEXImage dmiExImage, Point p, bool leftMousePressed)
         {
-            _mouseHeld = LeftMousePressed;
+            _mouseHeld = leftMousePressed;
         }
 
         public override void onLeftMouseDown(DmiEXImage dmiExImage, Point p)

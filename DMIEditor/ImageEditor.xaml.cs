@@ -129,7 +129,7 @@ namespace DMIEditor
             {
                 Image.getLayerByIndex(index);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 return;
             }

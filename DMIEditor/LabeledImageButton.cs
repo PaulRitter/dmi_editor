@@ -18,6 +18,7 @@ namespace DMIEditor
 
         public LabeledImageButton(BitmapImage bmI, string labeltext)
         {
+            
             //create stackpanel
             _stackPanel = new StackPanel();
 
@@ -27,7 +28,8 @@ namespace DMIEditor
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Stretch = Stretch.None
             };
-            
+            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+
             setImage(bmI);
 
                 //add to stackpanel

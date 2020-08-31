@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using DMI_Parser;
@@ -176,7 +177,10 @@ namespace DMIEditor
                     BorderThickness = new Thickness(0.5d),
                     BorderBrush = System.Windows.Media.Brushes.Black
                 };
+                ScrollViewer scrollViewer = new ScrollViewer();
+                scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                 StackPanel framePanel = new StackPanel();
+                scrollViewer.Content = framePanel;
 
                 string dirText;
                 switch (d)
@@ -221,7 +225,7 @@ namespace DMIEditor
                     framePanel.Children.Add(frameButton);
                     _frameButtons.Add(frameButton);
                 }
-                b.Child = framePanel;
+                b.Child = scrollViewer;
                 dirPanel.Children.Add(b);
             }
         }
