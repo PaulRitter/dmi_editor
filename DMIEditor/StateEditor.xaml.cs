@@ -56,10 +56,11 @@ namespace DMIEditor
             RenderOptions.SetEdgeMode(img, EdgeMode.Aliased);
 
             //binding events for drawing
-            img.MouseLeftButtonDown += OnLeftMouseDown;
-            img.MouseLeftButtonUp += OnLeftMouseUp;
-            img.MouseLeave += OnMouseExit;
-            img.MouseMove += OnMouseMove;
+            img.MouseLeftButtonDown += OnLeftMouseDownOnImage;
+            img.MouseLeftButtonUp += OnLeftMouseUpOnImage;
+            img.MouseLeave += OnMouseExitOnImage;
+            img.MouseMove += OnMouseMoveOnImage;
+            img.MouseEnter += OnMouseEnterOnImage;
 
             //creating background map (tiling)
             var backgroundMap = new Bitmap(State.Width*2, State.Height*2);
@@ -291,104 +292,22 @@ namespace DMIEditor
                 UpdateFrameButtonsPressState();
             }
         }
-
-        // =====================
-        // =====================
-        // Tool handling
-        private bool _mouseHeld; //tracks wether or not left mouse button is held
-        private Point? _startingPoint;
-
-        //todo implement strg+z
         
-        private bool IsPointValid(Point p)
-        {
-            if (SelectedBitmap == null) return false;
-            if (p.X < 0 || p.X > SelectedBitmap.Width) return false;
-            if (p.Y < 0 || p.Y > SelectedBitmap.Height) return false;
+        private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
+            => _fileEditor.Main.GetTool().onLeftMouseDown(SelectedBitmap, BitmapPoint(e));
 
-            return true;
-        }
+        private void OnMouseMoveOnImage(object sender, MouseEventArgs e)
+            => _fileEditor.Main.GetTool().onMouseMove(SelectedBitmap, BitmapPoint(e));
 
-        //will try to modify the specified pixel with the selected tool
-        private void TryPixelAct(Point point)
-        {
-            if (!IsPointValid(point)) return; //todo throw exception here
-            
-            EditorTool tool = _fileEditor.Main.GetTool();
-            if(tool is PixelTool pixelTool && pixelTool.PixelAct(SelectedBitmap, point.X, point.Y))
-                ReRenderImage();
-        }
+        private void OnLeftMouseUpOnImage(object sender, MouseEventArgs e)
+            => _fileEditor.Main.GetTool().onLeftMouseUp(SelectedBitmap, BitmapPoint(e));
 
-        private void TryAreaAct(Point start, Point end)
-        {
-            if (!IsPointValid(start) || !IsPointValid(end)) return; //todo throw exception here
-
-            EditorTool tool = _fileEditor.Main.GetTool();
-            if (!(tool is AreaTool areaTool)) return;
-            
-            int x;
-            int width;
-            if (start.X < end.X)
-            {
-                x = start.X;
-                width = end.X - start.X;
-            }
-            else
-            {
-                x = end.X;
-                width = start.X - end.X;
-            }
-
-            int y;
-            int height;
-            if (start.Y < end.Y)
-            {
-                y = start.Y;
-                height = end.Y - start.Y;
-            }
-            else
-            {
-                y = end.Y;
-                height = start.Y - end.Y;
-            }
-
-            if (areaTool.AreaAct(SelectedBitmap, x, y, width, height))
-                ReRenderImage();
-        }
-
-        // Event handling
-        private void OnLeftMouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseHeld = true;
-            _startingPoint = BitmapPoint(e);
-
-            if (_fileEditor.Main.GetTool() is PixelTool pixelTool)
-            {
-                TryPixelAct(_startingPoint.Value);
-                _startingPoint = null;
-            }
-        }
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseHeld && _fileEditor.Main.GetTool() is PixelTool pixelTool)
-            {
-                TryPixelAct(BitmapPoint(e));
-            }
-        }
-        private void OnLeftMouseUp(object sender, MouseEventArgs e)
-        {
-            if (_mouseHeld && _startingPoint != null)
-            {
-                TryAreaAct(_startingPoint.Value, BitmapPoint(e));
-            }
-
-            _mouseHeld = false;
-        }
-        private void OnMouseExit(object sender, MouseEventArgs e)
-        {
-            OnLeftMouseUp(sender, e);
-        }
+        private void OnMouseEnterOnImage(object sender, MouseEventArgs e)
+            => _fileEditor.Main.GetTool().onMouseEnter(SelectedBitmap, BitmapPoint(e));
         
+        private void OnMouseExitOnImage(object sender, MouseEventArgs e)
+            => _fileEditor.Main.GetTool().onMouseExit(SelectedBitmap, BitmapPoint(e));
+
         // helpers to calculate from screen pixel pos -> bitmap pixel pos
         public Point BitmapPoint(MouseEventArgs e)
         {
@@ -401,9 +320,6 @@ namespace DMIEditor
             
             return new Point(x, y);
         }
-
-        // =====================
-        // =====================
 
         private void AddLayer(object sender, EventArgs e)
         {
@@ -510,7 +426,7 @@ namespace DMIEditor
             ReRenderImage();
         }
 
-        private void ReRenderImage()
+        public void ReRenderImage()
         {
             ImageFactory imgF = new ImageFactory();
             bool first = true;

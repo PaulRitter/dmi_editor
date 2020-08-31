@@ -5,15 +5,15 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Pen : PixelTool
+    public class Pen : DragTool
     {
         public override string Name => "Pen";
         public Pen(MainWindow main) : base(main) { }
 
-        public override bool PixelAct(Bitmap bitmap, int x, int y)
+        protected override void PixelAct(Bitmap bitmap, Point p)
         {
-            bitmap.SetPixel(x, y, main.GetColor());
-            return true;
+            bitmap.SetPixel(p.X, p.Y, main.GetColor());
+            reRenderStateImage();
         }
     }
 }

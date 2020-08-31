@@ -3,7 +3,7 @@ using DMI_Parser;
 
 namespace DMIEditor.Tools
 {
-    public class HotspotTool : PixelTool
+    public class HotspotTool : ClickTool
     {
         public HotspotTool(MainWindow main) : base(main)
         {
@@ -11,14 +11,12 @@ namespace DMIEditor.Tools
 
         public override string Name => "Hotspot";
 
-        public override bool PixelAct(Bitmap current, int x, int y)
+        public override void PixelAct(Bitmap current, int x, int y)
         {
             StateEditor editor = main.SelectedEditor.selectedStateEditor;
             int dir = editor.DirIndex;
             int frame = editor.FrameIndex;
             //todo create hotspot
-
-            return false;
         }
     }
 }

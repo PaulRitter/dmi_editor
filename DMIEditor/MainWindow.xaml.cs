@@ -29,10 +29,8 @@ namespace DMIEditor
 
             openFileBtn.Click += OpenFileDialog;
 
-            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) );
-
-            //EditorTool[] tools = { new Tools.Pen(this), new Eraser(this), new Fill(this) , new Pipette(this) };
-
+            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
+            
             bool first = true;
             bool left = true;
             foreach (Type toolType in toolTypes)

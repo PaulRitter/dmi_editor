@@ -5,21 +5,21 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Fill : PixelTool
+    public class Fill : ClickTool
     {
         public override string Name => "Fill";
         public Fill(MainWindow main) : base(main) { }
 
-        public override bool PixelAct(Bitmap current, int x, int y)
+        public override void PixelAct(Bitmap current, int x, int y)
         {
             Color oldColor = current.GetPixel(x, y);
 
             if (oldColor == main.GetColor())
-                return false;
+                return;
 
             processPixel(ref current, oldColor, new Point(x,y), new List<Point>());
 
-            return true;
+            reRenderStateImage();
         }
 
         //checks and modifies current pixel and proceeds to check cardinal neighbours
