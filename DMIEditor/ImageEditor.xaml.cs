@@ -182,17 +182,30 @@ namespace DMIEditor
 
                 _visibleText.Text = _layer.Visible ? "Hide" : "Show";
 
+                
+                StackPanel buttonPanel = new StackPanel();
+                buttonPanel.Orientation = Orientation.Horizontal;
+                
                 Button visibleBtn = new Button
                 {
                     Content = _visibleText
                 };
-                sp.Children.Add(visibleBtn);
+                buttonPanel.Children.Add(visibleBtn);
+
+                Button duplicateButton = new Button
+                {
+                    Content = "Duplicate"
+                };
+                buttonPanel.Children.Add(duplicateButton);
+                
+                sp.Children.Add(buttonPanel);
 
                 visibleBtn.Click += ToggleVisibility;
+                duplicateButton.Click += DuplicateLayer;
                 Click += Clicked;
 
                 _layer.ImageChanged += UpdateImage;
-                //todo _layer.indexChanged += updateIndex
+                _layer.IndexChanged += UpdateText;
                 _layer.VisibilityChanged += UpdateVisibility;
 
                 _imageEditor.LayerIndexChanged += UpdatePressState;
@@ -205,6 +218,11 @@ namespace DMIEditor
                 _imageEditor.SelectLayer(LayerIndex);
             }
 
+            private void UpdateText(object sender, EventArgs e)
+            {
+                label.Text = $"Layer {_layer.Index}";
+            }
+            
             private void UpdateVisibility(object sender, EventArgs e)
             {
                 _visibleText.Text = _layer.Visible ? "Hide" : "Show";
@@ -223,6 +241,11 @@ namespace DMIEditor
             private void ToggleVisibility(object sender, EventArgs e)
             {
                 _layer.Visible = !_layer.Visible;
+            }
+
+            private void DuplicateLayer(object sender, EventArgs e)
+            {
+                _imageEditor.Image.addLayer((DmiEXLayer)_layer.Clone());
             }
         }
     }

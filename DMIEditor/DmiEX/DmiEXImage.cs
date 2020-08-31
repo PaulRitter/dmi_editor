@@ -36,7 +36,16 @@ namespace DMIEditor
 
         public void addLayer(DmiEXLayer l)
         {
-            if (_layers.Any(layer => layer.Index == l.Index)) throw new ArgumentException("Layer with that index already exists");
+            //moving all layers in the way one step up
+            int increaseAtIndex = l.Index;
+            DmiEXLayer[] layers = _layers.ToArray();
+            for (int i = 0; i < layers.Length; i++)
+            {
+                DmiEXLayer layer = layers[i];
+                if (layer.Index != increaseAtIndex) continue;
+                layer.Index++;
+                increaseAtIndex++;
+            }
             
             _layers.Add(l);
             sortLayers();
