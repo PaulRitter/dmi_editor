@@ -13,9 +13,9 @@ namespace DMIEditor.Tools
 
         public override void PixelAct(Point p)
         {
-            StateEditor editor = main.SelectedEditor.SelectedStateEditor;
-            int dir = editor.DirIndex;
-            int frame = editor.FrameIndex;
+            //StateEditor editor = main.SelectedEditor.SelectedStateEditor;
+            //int dir = editor.DirIndex;
+            //int frame = editor.FrameIndex;
             //todo create hotspot
         }
     }

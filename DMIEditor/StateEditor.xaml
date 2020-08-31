@@ -11,37 +11,21 @@
             <ColumnDefinition Width="60*"/>
             <ColumnDefinition Width="40*"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="70*"/>
-                <ColumnDefinition Width="30*"/>
-            </Grid.ColumnDefinitions>
-            <Viewbox x:Name="imageViewbox" Grid.Column="0" >
-                <Border BorderBrush="Black" BorderThickness="0.1">
-                    <Grid>
-                        <Image x:Name="backgroundImg" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <Image x:Name="img" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-                </Border>
-            </Viewbox>
-            <Grid Grid.Column="1">
+        <Border Grid.Column="0" x:Name="imageEditorGrid">
+        </Border>
+        <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
+            <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="80*"/>
-                    <RowDefinition Height="20*"/>
+                    <RowDefinition Height="90*"/>
+                    <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="LayerStackPanel"></StackPanel>
+                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
                 </ScrollViewer>
                 <ScrollViewer Grid.Row="1"  VerticalScrollBarVisibility="Auto">
-                <StackPanel  x:Name="stateValues">
-                </StackPanel>
-                    </ScrollViewer>
+                    <StackPanel  x:Name="stateValues" Orientation="Horizontal"/>
+                </ScrollViewer>
             </Grid>
-        </Grid>
-        <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
-            </ScrollViewer>
         </Border>
     </Grid>
 </UserControl>

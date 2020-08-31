@@ -9,7 +9,7 @@ namespace DMIEditor.Tools
     {
         public abstract string Name { get; }
         //public readonly XYZ icon;
-        internal MainWindow main;
+        internal MainWindow main; //todo remove this since we got MainWindow.current
 
         public EditorTool(MainWindow main)
         {
@@ -27,12 +27,12 @@ namespace DMIEditor.Tools
         public abstract void onMouseMove(DmiEXImage dmiExImage, Point p);
 
         protected void setPixel(Point p, Color c)
-            => main.SelectedEditor.SelectedStateEditor.SelectedLayer.setPixel(p, c);
+            => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.setPixel(p, c);
 
-        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.SelectedLayer.getPixel(p);
+        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.getPixel(p);
 
-        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.SelectedLayer.Bitmap.Width;
-        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.SelectedLayer.Bitmap.Height;
+        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Width;
+        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Height;
         
         public override string ToString()
         {

@@ -22,9 +22,14 @@ namespace DMIEditor
     {
         private List<FileEditor> _editors = new List<FileEditor>();
         private EditorTool _selectedTool;
+        public static MainWindow Current;
 
         public MainWindow()
         {
+            if(Current != null) throw new Exception("Mainwindow already exists");
+
+            Current = this;
+            
             InitializeComponent();
 
             openFileBtn.Click += OpenFileDialog;
