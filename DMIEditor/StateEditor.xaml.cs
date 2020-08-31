@@ -231,9 +231,42 @@ namespace DMIEditor
                     BorderBrush = System.Windows.Media.Brushes.Black
                 };
                 StackPanel framePanel = new StackPanel();
+
+                string dirText;
+                switch (d)
+                {
+                    case 0:
+                        dirText = "SOUTH";
+                        break;
+                    case 1:
+                        dirText = "NORTH";
+                        break;
+                    case 2:
+                        dirText = "EAST";
+                        break;
+                    case 3:
+                        dirText = "WEST";
+                        break;
+                    case 4:
+                        dirText = "SOUTHEAST";
+                        break;
+                    case 5:
+                        dirText = "SOUTHWEST";
+                        break;
+                    case 6:
+                        dirText = "NORTHEAST";
+                        break;
+                    case 7:
+                        dirText = "NORTHWEST";
+                        break;
+                    default:
+                        dirText = "ERROR";
+                        break;
+                }
+                
                 TextBlock title = new TextBlock
                 {
-                    Text = $"Dir {d + 1}", HorizontalAlignment = HorizontalAlignment.Center
+                    Text = $"{dirText}", HorizontalAlignment = HorizontalAlignment.Center
                 };
                 framePanel.Children.Add(title);
                 for (int f = 0; f < State.Frames; f++)
