@@ -104,7 +104,6 @@ namespace DMIEditor
             {
                 Minimum = 1,
                 Increment = 1,
-                Maximum = 30, //arbitrary number, why would you ever need more than this?
                 Value = State.Frames
             };
             frameCountEditor.ValueChanged += (sender, args) =>
@@ -126,7 +125,6 @@ namespace DMIEditor
             {
                 Minimum = 0,
                 Increment = 1,
-                Maximum = 30,
                 Value = State.Loop
             };
             var infiniteIndicator = new TextBlock()

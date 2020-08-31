@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using DMI_Parser.Utils;
+using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
 
@@ -168,13 +169,12 @@ namespace DMIEditor
         
         private class LayerButton : LabeledImageButton
         {
-            public readonly int LayerIndex;
             private readonly ImageEditor _imageEditor;
             private readonly DmiEXLayer _layer;
             private TextBlock _visibleText = new TextBlock();
-            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(layer.toImage(), $"Layer {layer.Index}")
+            private IntegerUpDown layerIndexEditor;
+            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(layer.toImage(), "")
             {
-                LayerIndex = layer.Index;
                 _imageEditor = imageEditor;
                 _layer = layer;
 
@@ -182,7 +182,6 @@ namespace DMIEditor
 
                 _visibleText.Text = _layer.Visible ? "Hide" : "Show";
 
-                
                 StackPanel buttonPanel = new StackPanel();
                 buttonPanel.Orientation = Orientation.Horizontal;
                 
@@ -190,22 +189,36 @@ namespace DMIEditor
                 {
                     Content = _visibleText
                 };
+                visibleBtn.Click += ToggleVisibility;
                 buttonPanel.Children.Add(visibleBtn);
 
                 Button duplicateButton = new Button
                 {
                     Content = "Duplicate"
                 };
+                duplicateButton.Click += DuplicateLayer;
                 buttonPanel.Children.Add(duplicateButton);
+                
+                layerIndexEditor = new IntegerUpDown()
+                {
+                    Increment = 1,
+                    Value = _layer.Index
+                };
+                layerIndexEditor.ValueChanged += UpdateIndex;
+                var p = new StackPanel()
+                {
+                    Orientation = Orientation.Horizontal
+                };
+                p.Children.Add(new TextBlock(){Text = "Index: "});
+                p.Children.Add(layerIndexEditor);
+                buttonPanel.Children.Add(p);
                 
                 sp.Children.Add(buttonPanel);
 
-                visibleBtn.Click += ToggleVisibility;
-                duplicateButton.Click += DuplicateLayer;
                 Click += Clicked;
 
                 _layer.ImageChanged += UpdateImage;
-                _layer.IndexChanged += UpdateText;
+                _layer.IndexChanged += UpdateEditor;
                 _layer.VisibilityChanged += UpdateVisibility;
 
                 _imageEditor.LayerIndexChanged += UpdatePressState;
@@ -215,12 +228,7 @@ namespace DMIEditor
 
             private void Clicked(object sender, EventArgs e)
             {
-                _imageEditor.SelectLayer(LayerIndex);
-            }
-
-            private void UpdateText(object sender, EventArgs e)
-            {
-                label.Text = $"Layer {_layer.Index}";
+                _imageEditor.SelectLayer(_layer.Index);
             }
             
             private void UpdateVisibility(object sender, EventArgs e)
@@ -246,6 +254,19 @@ namespace DMIEditor
             private void DuplicateLayer(object sender, EventArgs e)
             {
                 _imageEditor.Image.addLayer((DmiEXLayer)_layer.Clone());
+            }
+
+            private void UpdateEditor(object sender, EventArgs e)
+            {
+                layerIndexEditor.ValueChanged -= UpdateIndex;
+                layerIndexEditor.Value = _layer.Index;
+                layerIndexEditor.ValueChanged += UpdateIndex;
+            }
+
+            private void UpdateIndex(object sender, EventArgs e)
+            {
+                if (layerIndexEditor.Value == null) return;
+                _imageEditor.Image.setLayerIndex(_layer, layerIndexEditor.Value.Value);
             }
         }
     }

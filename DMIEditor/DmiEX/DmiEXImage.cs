@@ -34,6 +34,20 @@ namespace DMIEditor
             addLayer(new DmiEXLayer(bm, 0));
         }
 
+        public void setLayerIndex(DmiEXLayer layer, int index)
+        {
+            layer.Index = index;
+            int duplicateIndex = index;
+            DmiEXLayer[] layers = _layers.ToArray();
+            for (int i = 0; i < layers.Length; i++)
+            {
+                DmiEXLayer l = layers[i];
+                if (l.Index != duplicateIndex || l == layer) continue;
+                l.Index++;
+                duplicateIndex++;
+            }
+        }
+
         public void addLayer(DmiEXLayer l)
         {
             //moving all layers in the way one step up
@@ -80,6 +94,7 @@ namespace DMIEditor
             ImageFactory imgF = new ImageFactory();
             bool first = true;
 
+            sortLayers();
             for (int i = 0; i < _layers.Count; i++)
             {
                 DmiEXLayer dmiExLayer = _layers[i];
