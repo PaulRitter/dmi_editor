@@ -36,9 +36,14 @@ namespace DMIEditor
             return Images[dir, frame].getImage();
         }
 
-        protected virtual ICloneable[,] getOldImagesForArrayResize() => Images;
+        protected override void clearImageArray(int dirs, int frames)
+        {
+            Images = new DmiEXImage[dirs,frames];
+        }
 
-        protected virtual void addImage(int dir, int frame, object img)
+        protected override ICloneable[,] getOldImagesForArrayResize() => Images;
+
+        protected override void addImage(int dir, int frame, object img)
         {
             Images[dir, frame] = (DmiEXImage) img;
         }

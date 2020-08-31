@@ -24,6 +24,7 @@ namespace DMIEditor
         {
             Width = width;
             Height = height;
+            addLayer(new DmiEXLayer(new Bitmap(width,height), 0));
         }
 
         public DmiEXImage(Bitmap bm)
@@ -96,6 +97,7 @@ namespace DMIEditor
         public object Clone()
         {
             DmiEXImage image = new DmiEXImage(Width, Height);
+            image._layers = new List<DmiEXLayer>();
             foreach (var layer in _layers)
             {
                 image.addLayer((DmiEXLayer)layer.Clone());
