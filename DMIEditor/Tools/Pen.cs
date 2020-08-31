@@ -10,10 +10,9 @@ namespace DMIEditor.Tools
         public override string Name => "Pen";
         public Pen(MainWindow main) : base(main) { }
 
-        protected override void PixelAct(Bitmap bitmap, Point p)
+        protected override void PixelAct(Point p)
         {
-            bitmap.SetPixel(p.X, p.Y, main.GetColor());
-            reRenderStateImage();
+            setPixel(p, main.GetColor());
         }
     }
 }

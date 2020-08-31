@@ -8,16 +8,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DMI_Parser;
-using DMIEditor.Tools;
-using ImageProcessor;
-using ImageProcessor.Imaging;
-using ImageProcessor.Imaging.Formats;
+using DMI_Parser.Utils;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
-using ResizeMode = System.Windows.ResizeMode;
 
 namespace DMIEditor
 {
@@ -27,38 +22,50 @@ namespace DMIEditor
     public partial class StateEditor : UserControl
     {
         private readonly FileEditor _fileEditor;
-        private List<Layer> _layers;
-        private int _layerIndex = 0;
+
+        private int _layerIndex;
+        public int LayerIndex
+        {
+            get => _layerIndex;
+            private set
+            {
+                _layerIndex = value;
+                LayerIndexChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private int HighestIndex => SelectedImage.getLayers().Max((l) => l.Index);
+        private int LowestIndex => SelectedImage.getLayers().Min((l) => l.Index);
+
+        public event EventHandler LayerIndexChanged;
+        
         private List<LayerButton> _layerButtons = new List<LayerButton>();
         private List<ImageSelectionButton> _frameButtons = new List<ImageSelectionButton>();
 
         public readonly int StateIndex;
-        public readonly DMIState State;
+        public readonly DmiEXState State;
+        
+        //todo convert this to a point to make event attachable to set
         public int DirIndex { get; private set; }
         public int FrameIndex { get; private set; }
 
-        private Bitmap SelectedBitmap
-        {
-            get
-            {
-                return _layers.Find(l => l.Index == _layerIndex)?.Bitmap;
-            }
-        }
+        public event EventHandler ImageIndexChanged;
 
-        public StateEditor(FileEditor fileEditor, int stateIndex, DMIState state)
+        public DmiEXImage SelectedImage => State.Images[DirIndex, FrameIndex];
+        public DmiEXLayer SelectedLayer => SelectedImage.getLayerByIndex(_layerIndex);
+        
+        public StateEditor(FileEditor fileEditor, int stateIndex, DmiEXState state)
         {
-            this._fileEditor = fileEditor;
-            this.StateIndex = stateIndex;
+            _fileEditor = fileEditor;
+            StateIndex = stateIndex;
             State = state;
-            _layers = new List<Layer>();
+            
             InitializeComponent();
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
-            RenderOptions.SetEdgeMode(img, EdgeMode.Aliased);
-
+            
             //binding events for drawing
             img.MouseLeftButtonDown += OnLeftMouseDownOnImage;
             img.MouseLeftButtonUp += OnLeftMouseUpOnImage;
-            img.MouseLeave += OnMouseExitOnImage;
             img.MouseMove += OnMouseMoveOnImage;
             img.MouseEnter += OnMouseEnterOnImage;
 
@@ -75,36 +82,66 @@ namespace DMIEditor
                 }
                 s = !s; //offsetting every row
             }
-
-            ImageFactory imgF = new ImageFactory().Load(backgroundMap);
-            imgF.Resolution(State.Width * 2, State.Height * 2);
-
-            MemoryStream stream = new MemoryStream(); 
-            imgF.Save(stream);
-
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.StreamSource = stream;
-            bitmap.EndInit();
-
-            backgroundImg.Source = bitmap;
             
-            CreateImageButtons();
-            
+            backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(backgroundMap);;
+
+            ImageIndexChanged += UpdateImageDisplay;
+
             //setting default image
-            DirIndex = -1;
-            FrameIndex = -1;
-            SetImage(0,0);
+            SetImageIndex(0,0);
+            UpdateImageDisplay();
 
             //create stateValue editUI
             CreateStateValueEditor();
             
             //subscribe to state events
-            State.dirCountChanged += OnDirCountChanged;
-            State.frameCountChanged += OnFrameCountChanged;
-            
+            State.dirCountChanged += CreateImageButtons;
+            State.frameCountChanged += CreateImageButtons;
+
+            CreateImageButtons();
+
+            CreateLayerUi();
+
+            ImageIndexChanged += UpdateLayerUI;
             //TODO delays (maybe add into frame selection)
         }
+
+        private void UpdateLayerUI(object sender, EventArgs e)
+        {
+            _layerButtons.Clear();
+            LayerStackPanel.Children.Clear();
+            CreateLayerUi();
+        }
+        
+        private void CreateLayerUi()
+        {
+            var addHighBtn = new Button
+            {
+                Content = new TextBlock
+                {
+                    Text = "Add layer above"
+                }
+            };
+            addHighBtn.Click += (sender, e) => SelectedImage.addLayer(HighestIndex+1);
+            LayerStackPanel.Children.Add(addHighBtn);
+            
+            foreach (var btn in State.Images[DirIndex, FrameIndex].getLayers().Reverse().Select(layer => new LayerButton(this, layer)))
+            {
+                LayerStackPanel.Children.Add(btn);
+                _layerButtons.Add(btn);
+            }
+
+            var addLowBtn = new Button
+            {
+                Content = new TextBlock
+                {
+                    Text = "Add layer below"
+                }
+            };
+            addLowBtn.Click += (sender, e) => SelectedImage.addLayer(LowestIndex-1);
+            LayerStackPanel.Children.Add(addLowBtn);
+        }
+
 
         private void CreateStateValueEditor()
         {
@@ -112,17 +149,16 @@ namespace DMIEditor
             var idBox = new TextBox {Text = State.Id};
             idBox.KeyDown += (sender, args) =>
             {
-                if (args.Key == Key.Enter)
+                if (args.Key != Key.Enter) return;
+                
+                try
                 {
-                    try
-                    {
-                        State.setID(idBox.Text);
-                    }
-                    catch (ArgumentException)
-                    {
-                        ErrorPopupHelper.Create($"StateID \"{idBox.Text}\" is not valid!");
-                        idBox.Text = State.Id;
-                    }                   
+                    State.setID(idBox.Text);
+                }
+                catch (ArgumentException)
+                {
+                    ErrorPopupHelper.Create($"StateID \"{idBox.Text}\" is not valid!");
+                    idBox.Text = State.Id;
                 }
             };
             stateValues.Children.Add(idBox);
@@ -207,18 +243,8 @@ namespace DMIEditor
             p.Children.Add(rewindBox);
             stateValues.Children.Add(p);
         }
-        
-        private void OnDirCountChanged(object sender, EventArgs e)
-        {
-            CreateImageButtons();
-        }
 
-        private void OnFrameCountChanged(object sender, EventArgs e)
-        {
-            CreateImageButtons();
-        }
-        
-        private void CreateImageButtons()
+        private void CreateImageButtons(object sender = null, EventArgs e = null)
         {
             //create dir and frame buttons
             dirPanel.Children.Clear();
@@ -271,76 +297,64 @@ namespace DMIEditor
                 framePanel.Children.Add(title);
                 for (int f = 0; f < State.Frames; f++)
                 {
-                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, State.getImage(d, f), $"Frame {f+1}");
+                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, $"Frame {f+1}", State.Images[d, f]);
                     framePanel.Children.Add(frameButton);
                     _frameButtons.Add(frameButton);
                 }
                 b.Child = framePanel;
                 dirPanel.Children.Add(b);
             }
-            //sets the proper layout for the buttons
-            UpdateFrameButtonsPressState();
         }
-        
-        private void UpdateFrameButtonsPressState()
+
+        private void UpdateImageDisplay(object sender = null, EventArgs e = null)
         {
-            foreach (ImageSelectionButton btn in _frameButtons.Where(btn => btn.isPressed()))
-            {
-                btn.SetPressed(false);
-            }
-
-            foreach (ImageSelectionButton btn in _frameButtons.Where(btn => btn.DirIndex == DirIndex && btn.FrameIndex == FrameIndex))
-            {
-                btn.SetPressed(true);
-            }
+            img.Source = SelectedImage.getImage();
         }
 
-        private void SetImage(int dir, int frame)
+        private void SetImageIndex(int dir, int frame)
         {
             var imgChanged = false;
+            SelectedImage.ImageChanged -= UpdateImageDisplay;
+            SelectedImage.LayerListChanged -= UpdateLayerUI;
 
             if (dir >= 0 && dir < (int)State.Dirs)
             {
                 if (dir != DirIndex)
                 {
                     imgChanged = true;
-                    this.DirIndex = dir;
+                    DirIndex = dir;
                 }
             }
-            else return; //throw outofrangeexception
+            else throw new IndexOutOfRangeException("Dirindex is out of range");
 
             if (frame >= 0 && frame < State.Frames)
             {
                 if (frame != FrameIndex)
                 {
                     imgChanged = true;
-                    this.FrameIndex = frame;
+                    FrameIndex = frame;
                 }
             }
-            else return; //throw outofrangeexception
+            else throw new IndexOutOfRangeException("Frameindex is out of range");
 
-            if (imgChanged)
-            {
-                UpdateImageDisplay();
-                UpdateFrameButtonsPressState();
-            }
+            SelectedImage.ImageChanged += UpdateImageDisplay;
+            SelectedImage.LayerListChanged += UpdateLayerUI;
+
+            if (imgChanged) ImageIndexChanged?.Invoke(this, EventArgs.Empty);
         }
         
         private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
-            => _fileEditor.Main.GetTool().onLeftMouseDown(SelectedBitmap, BitmapPoint(e));
+            => _fileEditor.Main.GetTool().onLeftMouseDown(SelectedImage, BitmapPoint(e));
 
         private void OnMouseMoveOnImage(object sender, MouseEventArgs e)
-            => _fileEditor.Main.GetTool().onMouseMove(SelectedBitmap, BitmapPoint(e));
+            => _fileEditor.Main.GetTool().onMouseMove(SelectedImage, BitmapPoint(e));
 
         private void OnLeftMouseUpOnImage(object sender, MouseEventArgs e)
-            => _fileEditor.Main.GetTool().onLeftMouseUp(SelectedBitmap, BitmapPoint(e));
+            => _fileEditor.Main.GetTool().onLeftMouseUp(SelectedImage, BitmapPoint(e));
 
         private void OnMouseEnterOnImage(object sender, MouseEventArgs e)
-            => _fileEditor.Main.GetTool().onMouseEnter(SelectedBitmap, BitmapPoint(e));
+            => _fileEditor.Main.GetTool().onMouseEnter(SelectedImage, BitmapPoint(e), e.LeftButton == MouseButtonState.Pressed);
         
-        private void OnMouseExitOnImage(object sender, MouseEventArgs e)
-            => _fileEditor.Main.GetTool().onMouseExit(SelectedBitmap, BitmapPoint(e));
-
         // helpers to calculate from screen pixel pos -> bitmap pixel pos
         public Point BitmapPoint(MouseEventArgs e)
         {
@@ -353,174 +367,54 @@ namespace DMIEditor
             
             return new Point(x, y);
         }
-
-        private void AddLayer(object sender, EventArgs e)
+        
+        private void SelectLayer(int index)
         {
             try
             {
-                AddLayer(_layerIndex+1, new Bitmap(State.Width, State.Height));
+                State.Images[DirIndex, FrameIndex].getLayerByIndex(index);
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException e)
             {
-                ErrorPopupHelper.Create(ex);
-            }
-        }
-
-        private void AddLayer(int index, Bitmap bitmap)
-        {
-            if (index == 0) return; //index 0 is reserved for nothing selected
-            
-            if (_layers.Any(layer => layer.Index == index))
-            {
-                throw new ArgumentException("A Layer with that index already exists.");
-            }
-            var newLayer = new Layer(bitmap, index);
-            newLayer.Changed += OnLayerChanged;
-            _layers.Add(newLayer);
-            _layers.Sort((l1, l2) => l1.CompareTo(l2)); //layers are always sorted from highest index to lowest
-            UpdateLayerUi();
-            SelectLayer(index);
-        }
-
-        private void OnLayerChanged(object sender, EventArgs e)
-        {
-            if (!(sender is Layer layer)) return;
-            
-            if (!layer.Visible && layer.Index == _layerIndex)
-            {
-                int prevIndex = _layerIndex;
-                foreach (var otherLayer in _layers)
-                {
-                    if(otherLayer == layer) continue;
-                    if (SelectLayer(otherLayer.Index)) break;
-                }
-                if (prevIndex == _layerIndex)
-                {
-                    SelectLayer(0); //select nothing
-                }
-            }
-            UpdateLayerUi();
-            ReRenderImage();
-        }
-
-        private bool SelectLayer(int index)
-        {
-            if (index != 0){
-                if(GetLayer(index) == null) return false;
-                
-                if(!GetLayer(index).Visible) return false;
-            }
-            
-            _layerIndex = index;
-            foreach (var btn in _layerButtons)
-            {
-                btn.SetPressed(btn.LayerIndex == index);
+                return;
             }
 
-            return true;
-        }
-
-        public Layer GetLayer(int index)
-        {
-            return _layers.Find(l => l.Index == index);
+            LayerIndex = index;
         }
         
-        public void UpdateLayerUi()
-        {
-            LayerStackPanel.Children.Clear();
-            _layerButtons.Clear();
-            foreach (var btn in _layers.Select(layer => new LayerButton(layer.Bitmap, layer.Index, this)))
-            {
-                LayerStackPanel.Children.Add(btn);
-                _layerButtons.Add(btn);
-            }
-
-            var addBtn = new Button
-            {
-                Content = new TextBlock
-                {
-                    Text = "+"
-                }
-            };
-            addBtn.Click += AddLayer;
-            LayerStackPanel.Children.Add(addBtn);
-        }
-
-        //updates the image display
-        //very inefficient, needs to be reworked!!! somehow permanently uses up more and more ram
-        //todo memoryleak
-        private void UpdateImageDisplay()
-        {
-            _layers = new List<Layer>();
-            UpdateLayerUi();
-            
-            AddLayer(1, State.getImage(DirIndex, FrameIndex));
-
-            ReRenderImage();
-        }
-
-        public void ReRenderImage()
-        {
-            ImageFactory imgF = new ImageFactory();
-            bool first = true;
-
-            //just to make sure
-            _layers.Sort((l1,l2)=>l1.Index.CompareTo(l2.Index));
-            for (int i = 0; i < _layers.Count; i++)
-            {
-                Layer layer = _layers[i];
-                if (!layer.Visible) continue;
-                if (first)
-                {
-                    imgF.Load(layer.Bitmap);
-                    first = false;
-                    continue;
-                }
-
-                ImageLayer l = new ImageLayer();
-                l.Image = layer.Bitmap;
-                imgF.Overlay(l);
-            }
-
-            imgF.Resolution(State.Width, State.Height);
-            imgF.Format(new PngFormat());
-            imgF.BackgroundColor(Color.Transparent);
-
-            MemoryStream stream = new MemoryStream(); 
-            imgF.Save(stream);
-
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.StreamSource = stream;
-            bitmap.EndInit();
-
-            img.Source = bitmap;
-
-            UpdateLayerUi();
-        }
 
         private class LayerButton : LabeledImageButton
         {
             public readonly int LayerIndex;
             private readonly StateEditor _stateEditor;
+            private readonly DmiEXLayer _layer;
             private TextBlock _visibleText = new TextBlock();
-            public LayerButton(Bitmap bm, int layerIndex, StateEditor stateEditor) : base(bm, $"Layer {layerIndex}")
+            public LayerButton(StateEditor stateEditor, DmiEXLayer layer) : base(layer.toImage(), $"Layer {layer.Index}")
             {
-                this.LayerIndex = layerIndex;
-                this._stateEditor = stateEditor;
+                LayerIndex = layer.Index;
+                _stateEditor = stateEditor;
+                _layer = layer;
 
                 StackPanel sp = (StackPanel) Content;
 
-                _visibleText.Text = _stateEditor.GetLayer(LayerIndex).Visible ? "Hide" : "Show";
+                _visibleText.Text = _layer.Visible ? "Hide" : "Show";
 
                 Button visibleBtn = new Button
                 {
                     Content = _visibleText
                 };
                 sp.Children.Add(visibleBtn);
-                visibleBtn.Click += ToggleVisibility;
 
+                visibleBtn.Click += ToggleVisibility;
                 Click += Clicked;
+
+                _layer.ImageChanged += UpdateImage;
+                //todo _layer.indexChanged += updateIndex
+                _layer.VisibilityChanged += UpdateVisibility;
+
+                _stateEditor.LayerIndexChanged += UpdatePressState;
+                
+                UpdatePressState();
             }
 
             private void Clicked(object sender, EventArgs e)
@@ -528,29 +422,53 @@ namespace DMIEditor
                 _stateEditor.SelectLayer(LayerIndex);
             }
 
+            private void UpdateVisibility(object sender, EventArgs e)
+            {
+                _visibleText.Text = _layer.Visible ? "Hide" : "Show";
+            }
+
+            private void UpdatePressState(object sender = null, EventArgs e = null)
+            {
+                SetPressed(_layer.Index == _stateEditor.LayerIndex);
+            }
+
+            private void UpdateImage(object sender, EventArgs e)
+            {
+                setImage(_layer.toImage());
+            }
+
             private void ToggleVisibility(object sender, EventArgs e)
             {
-                _stateEditor.GetLayer(LayerIndex).Visible = !_stateEditor.GetLayer(LayerIndex).Visible; //this change will automatically trigger the redo of the entire layer ui
+                _layer.Visible = !_layer.Visible;
             }
         }
         
         private class ImageSelectionButton : LabeledImageButton
         {
             private readonly StateEditor _stateEditor;
+            private readonly DmiEXImage _image;
             public readonly int DirIndex;
             public readonly int FrameIndex;
-            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, Bitmap bm, string labeltext) : base (bm, labeltext)
+            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, string labeltext, DmiEXImage image) : base (image.getImage(), labeltext)
             {
-                this.DirIndex = dirIndex;
-                this.FrameIndex = frameIndex;
-                this._stateEditor = stateEditor;
+                DirIndex = dirIndex;
+                FrameIndex = frameIndex;
+                _image = image;
+                _stateEditor = stateEditor;
+                
                 Click += Clicked;
+                image.ImageChanged += UpdateImage;
+                stateEditor.ImageIndexChanged += UpdatePressed;
+                
+                UpdatePressed();
             }
 
-            private void Clicked(object sender, EventArgs e)
-            {
-                _stateEditor.SetImage(DirIndex, FrameIndex);
-            }
+            private void Clicked(object sender, EventArgs e) => _stateEditor.SetImageIndex(DirIndex, FrameIndex);
+
+            private void UpdatePressed(object sender = null, EventArgs e = null) => SetPressed(_stateEditor.DirIndex == DirIndex && _stateEditor.FrameIndex == FrameIndex);
+
+            private void UpdateImage(object sender = null, EventArgs e = null)
+                => setImage(_image.getImage());
         }
     }
 }

@@ -21,17 +21,19 @@ namespace DMIEditor.Tools
         // useful for button-press-only tools
         public abstract bool onSelected();
 
-        public abstract void onMouseEnter(Bitmap target, Point p);
-        public abstract void onMouseExit(Bitmap target, Point p);
-        public abstract void onLeftMouseDown(Bitmap target, Point p);
-        public abstract void onLeftMouseUp(Bitmap target, Point p);
-        public abstract void onMouseMove(Bitmap target, Point p);
+        public abstract void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed);
+        public abstract void onLeftMouseDown(DmiEXImage dmiExImage, Point p);
+        public abstract void onLeftMouseUp(DmiEXImage dmiExImage, Point p);
+        public abstract void onMouseMove(DmiEXImage dmiExImage, Point p);
 
-        protected void reRenderStateImage()
-        {
-            main.SelectedEditor.selectedStateEditor.ReRenderImage();
-        }
+        protected void setPixel(Point p, Color c)
+            => main.SelectedEditor.SelectedStateEditor.SelectedLayer.setPixel(p, c);
 
+        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.SelectedLayer.getPixel(p);
+
+        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.SelectedLayer.Bitmap.Width;
+        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.SelectedLayer.Bitmap.Height;
+        
         public override string ToString()
         {
             return Name;

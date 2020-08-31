@@ -9,15 +9,13 @@ namespace DMIEditor.Tools
         }
 
         public override bool onSelected() => true;
-        public override void onMouseEnter(Bitmap target, Point p){}
-        public override void onMouseExit(Bitmap target, Point p){}
-        public override void onLeftMouseUp(Bitmap target, Point p){}
-        public override void onMouseMove(Bitmap target, Point p){}
+        public override void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed){}
+        public override void onLeftMouseUp(DmiEXImage dmiExImage, Point p){}
+        public override void onMouseMove(DmiEXImage dmiExImage, Point p){}
 
-        public override void onLeftMouseDown(Bitmap target, Point p)
-            => PixelAct(target, p.X, p.Y);
+        public override void onLeftMouseDown(DmiEXImage dmiExImage, Point p) => PixelAct(p);
 
         //returns true if bitmap was changed
-        public virtual void PixelAct(Bitmap current, int x, int y) {}
+        public virtual void PixelAct(Point p) {}
     }
 }

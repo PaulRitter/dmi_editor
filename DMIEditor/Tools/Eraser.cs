@@ -10,10 +10,9 @@ namespace DMIEditor.Tools
         public override string Name => "Eraser";
         public Eraser(MainWindow main) : base(main) { }
 
-        protected override void PixelAct(Bitmap bitmap, Point p)
+        protected override void PixelAct(Point p)
         {
-            bitmap.SetPixel(p.X, p.Y, Color.Transparent);
-            reRenderStateImage();
+            setPixel(p, Color.Transparent);
         }
     }
 }

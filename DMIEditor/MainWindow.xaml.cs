@@ -118,12 +118,12 @@ namespace DMIEditor
             }
         }
 
-        public void LoadFile(String path)
+        public void LoadFile(string path)
         {
-            Dmi dmiFile;
+            DmiEX dmiFile;
             try
             {
-                dmiFile = Dmi.FromFile(path);
+                dmiFile = DmiEX.FromDMI(path);
             }
             catch (ParsingException e)
             {

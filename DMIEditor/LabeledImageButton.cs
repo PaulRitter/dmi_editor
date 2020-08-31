@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using ImageProcessor;
 using Image = System.Windows.Controls.Image;
 
 namespace DMIEditor
@@ -13,7 +15,8 @@ namespace DMIEditor
         protected Image img;
         protected TextBlock label;
         private StackPanel _stackPanel;
-        public LabeledImageButton(Bitmap bm, string labeltext)
+
+        public LabeledImageButton(BitmapImage bmI, string labeltext)
         {
             //create stackpanel
             _stackPanel = new StackPanel();
@@ -21,15 +24,13 @@ namespace DMIEditor
             //create image
             img = new Image
             {
-                Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                    bm.GetHbitmap(),
-                    IntPtr.Zero,
-                    System.Windows.Int32Rect.Empty,
-                    BitmapSizeOptions.FromWidthAndHeight(bm.Width, bm.Height)),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Stretch = Stretch.None
             };
-            //add to stackpanel
+            
+            setImage(bmI);
+
+                //add to stackpanel
             _stackPanel.Children.Add(img);
 
             //create label
@@ -63,6 +64,11 @@ namespace DMIEditor
         public bool isPressed()
         {
             return _pressed;
+        }
+
+        protected void setImage(BitmapImage bitmap)
+        {
+            img.Source = bitmap;
         }
     }
 }

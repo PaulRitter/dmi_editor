@@ -10,11 +10,10 @@ namespace DMIEditor.Tools
         public override string Name => "Pipette";
         public Pipette(MainWindow main) : base(main) { }
 
-        public override void PixelAct(Bitmap current, int x, int y)
+        public override void PixelAct(Point p)
         {
-            Color c = current.GetPixel(x, y);
-            if(c != Color.Transparent)
-                main.SetColor(c);
+            Color c = getPixel(p);
+            if(c != Color.Transparent) main.SetColor(c);
         }
     }
 }

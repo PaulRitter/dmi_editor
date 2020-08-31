@@ -11,9 +11,9 @@ namespace DMIEditor.Tools
 
         public override string Name => "Hotspot";
 
-        public override void PixelAct(Bitmap current, int x, int y)
+        public override void PixelAct(Point p)
         {
-            StateEditor editor = main.SelectedEditor.selectedStateEditor;
+            StateEditor editor = main.SelectedEditor.SelectedStateEditor;
             int dir = editor.DirIndex;
             int frame = editor.FrameIndex;
             //todo create hotspot

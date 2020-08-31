@@ -10,21 +10,19 @@ namespace DMIEditor.Tools
         public override string Name => "Fill";
         public Fill(MainWindow main) : base(main) { }
 
-        public override void PixelAct(Bitmap current, int x, int y)
+        public override void PixelAct(Point p)
         {
-            Color oldColor = current.GetPixel(x, y);
+            Color oldColor = getPixel(p);
 
             if (oldColor == main.GetColor())
                 return;
 
-            processPixel(ref current, oldColor, new Point(x,y), new List<Point>());
-
-            reRenderStateImage();
+            processPixel(oldColor, p, new List<Point>());
         }
 
         //checks and modifies current pixel and proceeds to check cardinal neighbours
         //ignore list is shared to avoid loops
-        private void processPixel(ref Bitmap current, Color oldColor, Point pixel, List<Point> alreadyProcessed)
+        private void processPixel(Color oldColor, Point pixel, List<Point> alreadyProcessed)
         {
             foreach (Point point in alreadyProcessed)
             {
@@ -34,19 +32,19 @@ namespace DMIEditor.Tools
                 }
             }
             alreadyProcessed.Add(pixel);
-            if (pixel.X >= current.Width || pixel.X < 0)
+            if (pixel.X >= ImageWidth || pixel.X < 0)
                 return;
-            if (pixel.Y >= current.Height || pixel.Y < 0)
+            if (pixel.Y >= ImageHeight || pixel.Y < 0)
                 return;
 
-            if (oldColor.Equals(current.GetPixel(pixel.X, pixel.Y)))
+            if (oldColor.Equals(getPixel(pixel)))
             {
-                current.SetPixel(pixel.X, pixel.Y, main.GetColor());
+                setPixel(pixel, main.GetColor());
 
-                processPixel(ref current, oldColor, new Point(pixel.X + 1, pixel.Y), alreadyProcessed);
-                processPixel(ref current, oldColor, new Point(pixel.X - 1, pixel.Y), alreadyProcessed);
-                processPixel(ref current, oldColor, new Point(pixel.X, pixel.Y + 1), alreadyProcessed);
-                processPixel(ref current, oldColor, new Point(pixel.X, pixel.Y - 1), alreadyProcessed);
+                processPixel(oldColor, new Point(pixel.X + 1, pixel.Y), alreadyProcessed);
+                processPixel(oldColor, new Point(pixel.X - 1, pixel.Y), alreadyProcessed);
+                processPixel(oldColor, new Point(pixel.X, pixel.Y + 1), alreadyProcessed);
+                processPixel(oldColor, new Point(pixel.X, pixel.Y - 1), alreadyProcessed);
             }
         }
     }

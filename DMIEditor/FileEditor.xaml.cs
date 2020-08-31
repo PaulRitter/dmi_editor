@@ -17,22 +17,21 @@ namespace DMIEditor
     /// </summary>
     public partial class FileEditor : UserControl
     {
-        public readonly Dmi Dmi;
+        public readonly DmiEX DmiEx;
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
 
-        public FileEditor(Dmi dmi, MainWindow main)
+        public FileEditor(DmiEX dmiEx, MainWindow main)
         {
-            this.Dmi = dmi;
+            this.DmiEx = dmiEx;
             this.Main = main;
             InitializeComponent();
 
             //adding state buttons
-            for (int i = 0; i < dmi.States.Count; i++)
+            for (int i = 0; i < dmiEx.States.Count; i++)
             {
-                Bitmap bm = dmi.States[i].getImage(0, 0);
-                StateButton btn = new StateButton(this, i, bm, dmi.States[i]);
+                StateButton btn = new StateButton(this, i, (DmiEXState)dmiEx.States[i]);
                 statePanel.Children.Add(btn);
                 _stateButtons.Add(btn);
             }
@@ -53,7 +52,7 @@ namespace DMIEditor
                 }
             }
 
-            DMIState state = Dmi.States[stateIndex];
+            DmiEXState state = (DmiEXState) DmiEx.States[stateIndex];
             StateEditor stateEditor = new StateEditor(this, stateIndex, state);
             StateEditorTabItem tItem = new StateEditorTabItem(stateEditor);
             stateTabControl.Items.Add(tItem);
@@ -118,30 +117,24 @@ namespace DMIEditor
 
             editor.SetImage(editor.DirIndex + offset.X, editor.FrameIndex + offset.Y);
         }*/
-
-        private void UpdateStateUi(object sender, EventArgs e) => UpdateStateUi();
-
-        public StateEditor selectedStateEditor => ((StateEditorTabItem) stateTabControl.SelectedItem).StateEditor;
+        
+        public StateEditor SelectedStateEditor => ((StateEditorTabItem) stateTabControl.SelectedItem).StateEditor;
 
         //called when the state changed, does NOT update the image, just the ui!
-        private void UpdateStateUi()
+        private void UpdateStateUi(object sender = null, EventArgs e = null)
         {
             //getting currently selected Tab
             StateEditorTabItem currentTab = (StateEditorTabItem)stateTabControl.SelectedItem;
 
             //building a list of all currently opened states
-            List<int> openedStates = new List<int>();
-            foreach (StateEditorTabItem item in stateTabControl.Items)
-            {
-                openedStates.Add(item.StateEditor.StateIndex);
-            }
+            List<int> openedStates = (from StateEditorTabItem item in stateTabControl.Items select item.StateEditor.StateIndex).ToList();
 
             //setting proper layout for every button
             foreach (StateButton button in _stateButtons)
             {
-                if (openedStates.Contains(button.stateIndex))
+                if (openedStates.Contains(button.StateIndex))
                 {
-                    if(currentTab != null && button.stateIndex == currentTab.StateEditor.StateIndex)
+                    if(currentTab != null && button.StateIndex == currentTab.StateEditor.StateIndex)
                     {
                         button.SetPressed(true);
                     }
@@ -159,13 +152,14 @@ namespace DMIEditor
 
         private class StateButton : LabeledImageButton
         {
-            protected readonly FileEditor FileEditor;
-            //stateindex
-            public readonly int stateIndex;
-            public StateButton(FileEditor fileEditor, int stateIndex, Bitmap bm, DMIState state) : base(bm,$"\"{state.Id}\"" + (bm == null ? "Bitmap was null!!!" : ""))
+            private readonly FileEditor _fileEditor;
+            public readonly int StateIndex;
+            private readonly DmiEXState _state;
+            public StateButton(FileEditor fileEditor, int stateIndex, DmiEXState state) : base(state.getImage(0,0),$"\"{state.Id}\"")
             {
-                this.stateIndex = stateIndex;
-                this.FileEditor = fileEditor;
+                StateIndex = stateIndex;
+                _state = state;
+                _fileEditor = fileEditor;
                 
                 //register click event
                 Click += Clicked;
@@ -173,15 +167,19 @@ namespace DMIEditor
                 {
                     label.Text = $"\"{state.Id}\"";
                 };
+                state.Images[0, 0].ImageChanged += ImageChanged;
             }
 
             protected virtual void Clicked(object sender, EventArgs e)
             {
-                FileEditor.SelectOrOpenState(stateIndex);
+                _fileEditor.SelectOrOpenState(StateIndex);
+            }
+
+            private void ImageChanged(object sender, EventArgs e)
+            {
+                setImage(_state.getImage(0,0));
             }
         }
-
-        
 
         private class StateEditorTabItem : TabItem
         {
