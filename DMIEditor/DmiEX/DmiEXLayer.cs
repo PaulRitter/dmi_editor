@@ -37,7 +37,6 @@ namespace DMIEditor
             }
         }
 
-
         public DmiEXLayer(Bitmap bitmap, int index)
         {
             Bitmap = bitmap;
@@ -53,12 +52,17 @@ namespace DMIEditor
         {
             if(c == getPixel(p)) return;
             Bitmap.SetPixel(p.X, p.Y, c);
+            _bufferedImage = null;
             ImageChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public Color getPixel(Point p) => Bitmap.GetPixel(p.X, p.Y);
 
-        public BitmapImage toImage() => BitmapUtils.Bitmap2BitmapImage(Bitmap);
+        private BitmapImage _bufferedImage;
+        public BitmapImage toImage()
+        {
+            return _bufferedImage ??= BitmapUtils.Bitmap2BitmapImage(Bitmap);
+        }
 
 #nullable enable
         public int CompareTo(object? obj)

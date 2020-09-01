@@ -20,18 +20,14 @@ namespace DMIEditor
         public event EventHandler LayerListChanged;
 
 
-        public DmiEXImage(int width, int height)
-        {
-            Width = width;
-            Height = height;
-            addLayer(new DmiEXLayer(new Bitmap(width,height), 0));
-        }
+        public DmiEXImage(int width, int height) : this(new Bitmap(width,height)) {}
 
         public DmiEXImage(Bitmap bm)
         {
             Width = bm.Width;
             Height = bm.Height;
             addLayer(new DmiEXLayer(bm, 0));
+            ImageChanged += (sender, e) => _bufferedImage = null;
         }
 
         public void setLayerIndex(DmiEXLayer layer, int index)
@@ -88,34 +84,39 @@ namespace DMIEditor
             if(layer == null) throw new ArgumentException("No Layer with that Index exists");
             return layer;
         }
-        
+
+        private BitmapImage _bufferedImage;
         public BitmapImage getImage()
         {
-            ImageFactory imgF = new ImageFactory();
-            bool first = true;
-
-            sortLayers();
-            for (int i = 0; i < _layers.Count; i++)
+            if (_bufferedImage == null)
             {
-                DmiEXLayer dmiExLayer = _layers[i];
-                if (!dmiExLayer.Visible) continue;
-                if (first)
+                ImageFactory imgF = new ImageFactory();
+                bool first = true;
+
+                sortLayers();
+                for (int i = 0; i < _layers.Count; i++)
                 {
-                    imgF.Load(dmiExLayer.Bitmap);
-                    first = false;
-                    continue;
+                    DmiEXLayer dmiExLayer = _layers[i];
+                    if (!dmiExLayer.Visible) continue;
+                    if (first)
+                    {
+                        imgF.Load(dmiExLayer.Bitmap);
+                        first = false;
+                        continue;
+                    }
+
+                    ImageLayer l = new ImageLayer();
+                    l.Image = dmiExLayer.Bitmap;
+                    imgF.Overlay(l);
                 }
 
-                ImageLayer l = new ImageLayer();
-                l.Image = dmiExLayer.Bitmap;
-                imgF.Overlay(l);
+                imgF.Resolution(Width, Height)
+                    .Format(new PngFormat())
+                    .BackgroundColor(Color.Transparent);
+
+                _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(imgF);
             }
-
-            imgF.Resolution(Width, Height)
-                .Format(new PngFormat())
-                .BackgroundColor(Color.Transparent);
-
-            return BitmapUtils.ImageFactory2BitmapImage(imgF);
+            return _bufferedImage;
         }
 
         public object Clone()
