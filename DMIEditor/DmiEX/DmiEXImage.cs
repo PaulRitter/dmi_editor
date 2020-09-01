@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows.Media.Imaging;
 using DMI_Parser.Utils;
 using ImageProcessor;
@@ -90,7 +91,23 @@ namespace DMIEditor.DmiEX
         public BitmapImage GetImage()
         {
             if (_bufferedImage != null) return _bufferedImage;
-            
+
+            _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(getImageFactory());
+            return _bufferedImage;
+        }
+
+        public Bitmap GetBitmap()
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            ImageFactory ImageFactory = getImageFactory();
+            ImageFactory.Save(memoryStream);
+
+            return new Bitmap(memoryStream);
+
+        }
+
+        private ImageFactory getImageFactory()
+        {
             ImageFactory imgF = new ImageFactory();
             bool first = true;
 
@@ -115,10 +132,9 @@ namespace DMIEditor.DmiEX
                 .Format(new PngFormat())
                 .BackgroundColor(Color.Transparent);
 
-            _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(imgF);
-            return _bufferedImage;
+            return imgF;
         }
-
+        
         public object Clone()
         {
             DmiEXImage image = new DmiEXImage(Width, Height);

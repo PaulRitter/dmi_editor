@@ -44,6 +44,10 @@ namespace DMIEditor
             Button openFileBtn = new Button {Content = "Open"};
             toolBar.Items.Add(openFileBtn);
             openFileBtn.Click += OpenFileDialog;
+            
+            Button saveFileBtn = new Button {Content = "Save"};
+            toolBar.Items.Add(saveFileBtn);
+            saveFileBtn.Click += openSaveFileDialog;
 
             IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
             
@@ -93,6 +97,30 @@ namespace DMIEditor
         public EditorTool GetTool()
         {
             return _selectedTool;
+        }
+
+        public void openSaveFileDialog(object sender, EventArgs e)
+        {
+            if (SelectedEditor == null) return;
+
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "DMI files (*.dmi)|*.dmi",
+                InitialDirectory = SelectedEditor.Path
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    Stream fileStream = sfd.OpenFile();
+                    SelectedEditor.DmiEx.SaveAsDmi(fileStream);
+                    fileStream.Close();
+                }
+                catch (Exception ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
+            }
         }
 
         public void OpenFileDialog(object sender, EventArgs e) 

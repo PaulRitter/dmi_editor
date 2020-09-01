@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Media.Imaging;
 using DMI_Parser;
 using DMI_Parser.Raw;
@@ -35,12 +36,19 @@ namespace DMIEditor.DmiEX
             return Images[dir, frame].GetImage();
         }
 
+        public override Bitmap getBitmap(int dir, int frame)
+        {
+            return Images[dir, frame].GetBitmap();
+        }
+
         protected override void clearImageArray(int dirs, int frames)
         {
             Images = new DmiEXImage[dirs,frames];
         }
 
         protected override ICloneable[,] getOldImagesForArrayResize() => Images;
+
+        public override int getImageCount() => Images.Length;
 
         protected override void addImage(int dir, int frame, object img)
         {
