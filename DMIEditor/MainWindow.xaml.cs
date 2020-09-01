@@ -11,6 +11,7 @@ using Microsoft.Win32;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
 using System.IO;
+using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
 {
@@ -23,6 +24,7 @@ namespace DMIEditor
         private List<FileEditor> _editors = new List<FileEditor>();
         private EditorTool _selectedTool;
         public static MainWindow Current;
+        private ColorPicker _colorPicker; 
 
         public MainWindow()
         {
@@ -31,13 +33,14 @@ namespace DMIEditor
             Current = this;
             
             InitializeComponent();
-
+            
+            Button openFileBtn = new Button {Content = "Open File"};
+            toolBar.Items.Add(openFileBtn);
             openFileBtn.Click += OpenFileDialog;
 
             IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
             
             bool first = true;
-            bool left = true;
             foreach (Type toolType in toolTypes)
             {
                 EditorTool tool = (EditorTool)Activator.CreateInstance(toolType, this);
@@ -51,20 +54,14 @@ namespace DMIEditor
                     first = false;
                 }
 
-                if (left)
-                {
-                    toolGridLeft.Children.Add(btn);
-                }
-                else
-                {
-                    toolGridRight.Children.Add(btn);
-                }
-                left = !left;
+                toolBar.Items.Add(btn);
             }
-
-            //loadFile(@"D:\Workspaces\Github\vgstation13\icons\obj\chempuff.dmi");
-            //loadFile(@"D:\Workspaces\Github\vgstation13\icons\mob\animal.dmi");
-            //loadFile("D:/Workspaces/Github/vgstation13/icons/effects/alphacolors.dmi");
+            
+            _colorPicker = new ColorPicker
+            {
+                SelectedColor = System.Windows.Media.Colors.Black, ShowDropDownButton = false
+            };
+            toolBar.Items.Add(_colorPicker);
         }
 
         public FileEditor SelectedEditor
@@ -90,16 +87,16 @@ namespace DMIEditor
 
         public Color GetColor()
         {
-            if(!colorPicker.SelectedColor.HasValue)
+            if(!_colorPicker.SelectedColor.HasValue)
                 return Color.Black;
-            System.Windows.Media.Color mc = colorPicker.SelectedColor.Value;
+            System.Windows.Media.Color mc = _colorPicker.SelectedColor.Value;
             return Color.FromArgb(mc.A, mc.R, mc.G, mc.B);
         }
 
         public void SetColor(Color c)
         {
             System.Windows.Media.Color mc = System.Windows.Media.Color.FromArgb(c.A, c.R, c.G, c.B);
-            colorPicker.SelectedColor = mc;
+            _colorPicker.SelectedColor = mc;
         }
 
         public EditorTool GetTool()

@@ -7,31 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="88*"/>
-            <ColumnDefinition Width="12*"/>
-        </Grid.ColumnDefinitions>
-        <TabControl Grid.Column="0" x:Name="mainTabControl"/>
-        <Border Grid.Column="1" Padding="10">
-            <Grid>
-                <StackPanel>
-                    <Button x:Name="openFileBtn">
-                        <TextBlock Text="Open File"/>
-                    </Button>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Color:" VerticalAlignment="Center" Margin="5"/>
-                        <xctk:ColorPicker VerticalAlignment="Center" x:Name="colorPicker" ShowDropDownButton="False" SelectedColor="Black"/>
-                    </StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel x:Name="toolGridLeft" Grid.Column="0"/>
-                        <StackPanel x:Name="toolGridRight" Grid.Column="1"/>
-                    </Grid>
-                </StackPanel>
-            </Grid>
-        </Border>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBarTray Grid.Row="0">
+            <ToolBar x:Name="toolBar"></ToolBar>
+        </ToolBarTray>
+        <TabControl Grid.Row="1" x:Name="mainTabControl"/>
     </Grid>
 </Window>
