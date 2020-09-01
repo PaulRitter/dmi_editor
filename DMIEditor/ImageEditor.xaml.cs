@@ -145,16 +145,16 @@ namespace DMIEditor
         }
         
         private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool().onLeftMouseDown(Image, BitmapPoint(e));
+            => MainWindow.Current.GetTool()?.onLeftMouseDown(Image, BitmapPoint(e));
 
         private void OnMouseMoveOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool().onMouseMove(Image, BitmapPoint(e));
+            => MainWindow.Current.GetTool()?.onMouseMove(Image, BitmapPoint(e));
 
         private void OnLeftMouseUpOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool().onLeftMouseUp(Image, BitmapPoint(e));
+            => MainWindow.Current.GetTool()?.onLeftMouseUp(Image, BitmapPoint(e));
 
         private void OnMouseEnterOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool().onMouseEnter(Image, BitmapPoint(e), e.LeftButton == MouseButtonState.Pressed);
+            => MainWindow.Current.GetTool()?.onMouseEnter(Image, BitmapPoint(e), e.LeftButton == MouseButtonState.Pressed);
         
         // helpers to calculate from screen pixel pos -> bitmap pixel pos
         private Point BitmapPoint(MouseEventArgs e)

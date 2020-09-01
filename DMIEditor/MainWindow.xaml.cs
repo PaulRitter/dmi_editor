@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,7 @@ using System.Windows.Input;
 using System.Runtime.InteropServices;
 using System.IO;
 using Xceed.Wpf.Toolkit;
+using DMIEditor.DmiEX;
 
 namespace DMIEditor
 {
@@ -21,10 +23,11 @@ namespace DMIEditor
 
     public partial class MainWindow : Window
     {
-        private List<FileEditor> _editors = new List<FileEditor>();
         private EditorTool _selectedTool;
         public static MainWindow Current;
-        private ColorPicker _colorPicker; 
+        private ColorPicker _colorPicker;
+
+        public event EventHandler ToolSelectionChanged;
 
         public MainWindow()
         {
@@ -34,26 +37,20 @@ namespace DMIEditor
             
             InitializeComponent();
             
-            Button openFileBtn = new Button {Content = "Open File"};
+            Button createNewFileBtn = new Button {Content = "New"};
+            toolBar.Items.Add(createNewFileBtn);
+            createNewFileBtn.Click += CreateNewFile;
+            
+            Button openFileBtn = new Button {Content = "Open"};
             toolBar.Items.Add(openFileBtn);
             openFileBtn.Click += OpenFileDialog;
 
             IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
             
-            bool first = true;
             foreach (Type toolType in toolTypes)
             {
                 EditorTool tool = (EditorTool)Activator.CreateInstance(toolType, this);
-                TextBlock txt = new TextBlock {Text = tool.ToString()};
-                ToolButton btn = new ToolButton(tool) {Content = txt, GroupName = "tools"};
-                btn.Click += ToolBtnClicked;
-                if (first)
-                {
-                    btn.IsChecked = true;
-                    _selectedTool = tool;
-                    first = false;
-                }
-
+                ToolButton btn = new ToolButton(tool);
                 toolBar.Items.Add(btn);
             }
             
@@ -77,12 +74,6 @@ namespace DMIEditor
                 }
                 return null;
             }
-        }
-
-        private void ToolBtnClicked(object sender, EventArgs e)
-        {
-            ToolButton btn = (ToolButton)sender;
-            _selectedTool = btn.Tool;
         }
 
         public Color GetColor()
@@ -115,31 +106,46 @@ namespace DMIEditor
             {
                 foreach (string path in ofd.FileNames)
                 {
-                    LoadFile(path);
+                    try
+                    {
+                        LoadFile(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorPopupHelper.Create(ex);
+                    }
                 }
             }
         }
 
         public void LoadFile(string path)
         {
-            DmiEX.DmiEX dmiFile;
-            try
+            string filename = path.Split(@"\").Last();            
+            if ((from TabItem editorTab in mainTabControl.Items select (FileEditor) editorTab.Content).Any(fileEditor => fileEditor.Path == path))
             {
-                dmiFile = DmiEX.DmiEX.FromDmi(path);
-            }
-            catch (ParsingException e)
-            {
-                ErrorPopupHelper.Create(e);
-                return;
+                throw new WarningException($"File {filename} is already open");
             }
             
-            FileEditor fE = new FileEditor(dmiFile, this);
+            DmiEX.DmiEX dmiFile = DmiEX.DmiEX.FromDmi(path);
+
+            addEditor(dmiFile, path);
+        }
+
+        private void addEditor(DmiEX.DmiEX dmiEx, string path)
+        {
+            string filename = path.Split(@"\").Last();            
+            if ((from TabItem editorTab in mainTabControl.Items select (FileEditor) editorTab.Content).Any(fileEditor => fileEditor.Path == path))
+            {
+                throw new WarningException($"File {filename} is already open");
+            }
+            
+            FileEditor fE = new FileEditor(dmiEx, this, path);
             TabItem tabItem = new TabItem();
             
             StackPanel sp = new StackPanel();
             TextBlock txt = new TextBlock
             {
-                Text = path.Split(@"\").Last(), VerticalAlignment = VerticalAlignment.Center
+                Text = filename, VerticalAlignment = VerticalAlignment.Center
             };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
@@ -155,12 +161,38 @@ namespace DMIEditor
             mainTabControl.SelectedIndex = mainTabControl.Items.IndexOf(tabItem);
         }
 
-        private class ToolButton : RadioButton
+        private void CreateNewFile(object sender, EventArgs e)
         {
-            public readonly EditorTool Tool;
+            DmiEX.DmiEX dmiEx = new DmiEX.DmiEX(1.0f, 32, 32);
+            try{
+                addEditor(dmiEx, "unnamed.dmi");
+            }
+            catch (Exception ex)
+            {
+                ErrorPopupHelper.Create(ex);
+            }
+        }
+        
+        private class ToolButton : Button
+        {
+            private readonly EditorTool _tool;
             public ToolButton(EditorTool tool)
             {
-                this.Tool = tool;
+                this._tool = tool;
+                this.Content = tool.Name;
+                Current.ToolSelectionChanged += UpdatePressed;
+            }
+
+            private void UpdatePressed(object sender, EventArgs e)
+            {
+                IsPressed = Current._selectedTool == _tool;
+            }
+
+            protected override void OnClick()
+            {
+                base.OnClick();
+                Current._selectedTool = _tool;
+                Current.ToolSelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 

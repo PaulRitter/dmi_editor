@@ -13,14 +13,16 @@ namespace DMIEditor
     public partial class FileEditor : UserControl
     {
         public readonly DmiEX.DmiEX DmiEx;
+        public string Path { get; private set; }
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
 
-        public FileEditor(DmiEX.DmiEX dmiEx, MainWindow main)
+        public FileEditor(DmiEX.DmiEX dmiEx, MainWindow main, string path)
         {
             this.DmiEx = dmiEx;
             this.Main = main;
+            Path = path;
             InitializeComponent();
 
             //adding state buttons
