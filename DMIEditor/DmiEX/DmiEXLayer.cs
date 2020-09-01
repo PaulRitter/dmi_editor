@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Windows.Media.Imaging;
 using DMI_Parser.Utils;
 
-namespace DMIEditor
+namespace DMIEditor.DmiEX
 {
     public class DmiEXLayer : IComparable, ICloneable
     {
@@ -48,18 +48,18 @@ namespace DMIEditor
 
         private void InvokeSomethingChanged(object sender, EventArgs e) => Changed?.Invoke(this, EventArgs.Empty);
 
-        public void setPixel(Point p, Color c)
+        public void SetPixel(Point p, Color c)
         {
-            if(c == getPixel(p)) return;
+            if(c == GetPixel(p)) return;
             Bitmap.SetPixel(p.X, p.Y, c);
             _bufferedImage = null;
             ImageChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public Color getPixel(Point p) => Bitmap.GetPixel(p.X, p.Y);
+        public Color GetPixel(Point p) => Bitmap.GetPixel(p.X, p.Y);
 
         private BitmapImage _bufferedImage;
-        public BitmapImage toImage()
+        public BitmapImage GetImage()
         {
             return _bufferedImage ??= BitmapUtils.Bitmap2BitmapImage(Bitmap);
         }

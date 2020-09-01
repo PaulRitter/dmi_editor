@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Drawing;
 using System.Windows.Media.Imaging;
 using DMI_Parser;
 using DMI_Parser.Raw;
 
-namespace DMIEditor
+namespace DMIEditor.DmiEX
 {
     public class DmiEXState : DMIState
     {
-        public static DmiEXState FromDMIState(DmiEX parent, DMIState dmiState)
+        public static DmiEXState FromDmiState(DMIEditor.DmiEX.DmiEX parent, DMIState dmiState)
         {
             RawDmiState raw = dmiState.toRaw();
             
@@ -33,7 +32,7 @@ namespace DMIEditor
 
         public override BitmapImage getImage(int dir, int frame)
         {
-            return Images[dir, frame].getImage();
+            return Images[dir, frame].GetImage();
         }
 
         protected override void clearImageArray(int dirs, int frames)

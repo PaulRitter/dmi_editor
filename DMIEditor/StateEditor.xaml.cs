@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using DMI_Parser;
-using DMI_Parser.Utils;
+using DMIEditor.DmiEX;
 using Xceed.Wpf.Toolkit;
-using Color = System.Drawing.Color;
-using Point = System.Drawing.Point;
 
 namespace DMIEditor
 {
@@ -24,8 +15,6 @@ namespace DMIEditor
     {
         private readonly FileEditor _fileEditor;
         
-        private List<ImageSelectionButton> _frameButtons = new List<ImageSelectionButton>();
-
         public readonly int StateIndex;
         public readonly DmiEXState State;
         
@@ -177,8 +166,7 @@ namespace DMIEditor
                     BorderThickness = new Thickness(0.5d),
                     BorderBrush = System.Windows.Media.Brushes.Black
                 };
-                ScrollViewer scrollViewer = new ScrollViewer();
-                scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                ScrollViewer scrollViewer = new ScrollViewer {HorizontalScrollBarVisibility = ScrollBarVisibility.Auto};
                 StackPanel framePanel = new StackPanel();
                 scrollViewer.Content = framePanel;
 
@@ -223,7 +211,6 @@ namespace DMIEditor
                 {
                     ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, $"Frame {f+1}", State.Images[d, f]);
                     framePanel.Children.Add(frameButton);
-                    _frameButtons.Add(frameButton);
                 }
                 b.Child = scrollViewer;
                 dirPanel.Children.Add(b);
@@ -243,7 +230,7 @@ namespace DMIEditor
             private readonly DmiEXImage _image;
             public readonly int DirIndex;
             public readonly int FrameIndex;
-            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, string labeltext, DmiEXImage image) : base (image.getImage(), labeltext)
+            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, string labeltext, DmiEXImage image) : base (image.GetImage(), labeltext)
             {
                 DirIndex = dirIndex;
                 FrameIndex = frameIndex;
@@ -262,7 +249,7 @@ namespace DMIEditor
             private void UpdatePressed(object sender = null, EventArgs e = null) => SetPressed(_stateEditor.ImageEditor.DirIndex == DirIndex && _stateEditor.ImageEditor.FrameIndex == FrameIndex);
 
             private void UpdateImage(object sender = null, EventArgs e = null)
-                => setImage(_image.getImage());
+                => SetImage(_image.GetImage());
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using DMI_Parser.Utils;
+using DMIEditor.DmiEX;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
@@ -15,7 +16,7 @@ namespace DMIEditor
 {
     public partial class ImageEditor : UserControl
     {
-        public new readonly StateEditor Parent;
+        public readonly StateEditor StateEditor;
         public readonly int DirIndex;
         public readonly int FrameIndex;
         public readonly DmiEXImage Image;
@@ -33,21 +34,21 @@ namespace DMIEditor
             }
         }
 
-        public DmiEXLayer SelectedLayer => Image.getLayers().First((l) => l.Index == _layerIndex);
+        public DmiEXLayer SelectedLayer => Image.GetLayers().First((l) => l.Index == _layerIndex);
 
-        private int HighestIndex => Image.getLayers().Max((l) => l.Index);
-        private int LowestIndex => Image.getLayers().Min((l) => l.Index);
+        private int HighestIndex => Image.GetLayers().Max((l) => l.Index);
+        private int LowestIndex => Image.GetLayers().Min((l) => l.Index);
 
         public event EventHandler LayerIndexChanged;
 
-        public ImageEditor(StateEditor parent, int dirIndex, int frameIndex)
+        public ImageEditor(StateEditor stateEditor, int dirIndex, int frameIndex)
         {
             InitializeComponent();
             
-            this.Parent = parent;
+            this.StateEditor = stateEditor;
             this.DirIndex = dirIndex;
             this.FrameIndex = frameIndex;
-            this.Image = parent.State.Images[DirIndex,FrameIndex];
+            this.Image = stateEditor.State.Images[DirIndex,FrameIndex];
             
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetBitmapScalingMode(backgroundImg, BitmapScalingMode.NearestNeighbor);
@@ -77,7 +78,7 @@ namespace DMIEditor
             {
                 for (var j = 0; j < backgroundMap.Height; j++)
                 {
-                    var c = s ? Color.Gray : Color.White;
+                    var c = s ? Color.LightGray : Color.White;
                     s = !s;
                     backgroundMap.SetPixel(i, j, c);
                 }
@@ -103,10 +104,10 @@ namespace DMIEditor
                     Text = "Add layer above"
                 }
             };
-            addHighBtn.Click += (sender, e) => Image.addLayer(HighestIndex+1);
+            addHighBtn.Click += (sender, e) => Image.AddLayer(HighestIndex+1);
             LayerStackPanel.Children.Add(addHighBtn);
             
-            foreach (var btn in Image.getLayers().Reverse().Select(layer => new LayerButton(this, layer)))
+            foreach (var btn in Image.GetLayers().Reverse().Select(layer => new LayerButton(this, layer)))
             {
                 LayerStackPanel.Children.Add(btn);
                 _layerButtons.Add(btn);
@@ -119,7 +120,7 @@ namespace DMIEditor
                     Text = "Add layer below"
                 }
             };
-            addLowBtn.Click += (sender, e) => Image.addLayer(LowestIndex-1);
+            addLowBtn.Click += (sender, e) => Image.AddLayer(LowestIndex-1);
             LayerStackPanel.Children.Add(addLowBtn);
         }
         
@@ -127,7 +128,7 @@ namespace DMIEditor
         {
             try
             {
-                Image.getLayerByIndex(index);
+                Image.GetLayerByIndex(index);
             }
             catch (ArgumentException)
             {
@@ -139,7 +140,7 @@ namespace DMIEditor
         
         private void UpdateImageDisplay(object sender = null, EventArgs e = null)
         {
-            img.Source = Image.getImage();
+            img.Source = Image.GetImage();
         }
         
         private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
@@ -172,8 +173,8 @@ namespace DMIEditor
             private readonly ImageEditor _imageEditor;
             private readonly DmiEXLayer _layer;
             private TextBlock _visibleText = new TextBlock();
-            private IntegerUpDown layerIndexEditor;
-            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(layer.toImage(), "")
+            private IntegerUpDown _layerIndexEditor;
+            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(layer.GetImage(), "")
             {
                 _imageEditor = imageEditor;
                 _layer = layer;
@@ -182,9 +183,8 @@ namespace DMIEditor
 
                 _visibleText.Text = _layer.Visible ? "Hide" : "Show";
 
-                StackPanel buttonPanel = new StackPanel();
-                buttonPanel.Orientation = Orientation.Horizontal;
-                
+                StackPanel buttonPanel = new StackPanel {Orientation = Orientation.Horizontal};
+
                 Button visibleBtn = new Button
                 {
                     Content = _visibleText
@@ -199,19 +199,26 @@ namespace DMIEditor
                 duplicateButton.Click += DuplicateLayer;
                 buttonPanel.Children.Add(duplicateButton);
                 
-                layerIndexEditor = new IntegerUpDown()
+                _layerIndexEditor = new IntegerUpDown()
                 {
                     Increment = 1,
                     Value = _layer.Index
                 };
-                layerIndexEditor.ValueChanged += UpdateIndex;
+                _layerIndexEditor.ValueChanged += UpdateIndex;
                 var p = new StackPanel()
                 {
                     Orientation = Orientation.Horizontal
                 };
                 p.Children.Add(new TextBlock(){Text = "Index: "});
-                p.Children.Add(layerIndexEditor);
+                p.Children.Add(_layerIndexEditor);
                 buttonPanel.Children.Add(p);
+                
+                Button deleteButton = new Button
+                {
+                    Content = "Delete"
+                };
+                deleteButton.Click += DeleteLayer;
+                buttonPanel.Children.Add(deleteButton);
                 
                 sp.Children.Add(buttonPanel);
 
@@ -243,7 +250,7 @@ namespace DMIEditor
 
             private void UpdateImage(object sender, EventArgs e)
             {
-                setImage(_layer.toImage());
+                SetImage(_layer.GetImage());
             }
 
             private void ToggleVisibility(object sender, EventArgs e)
@@ -253,20 +260,25 @@ namespace DMIEditor
 
             private void DuplicateLayer(object sender, EventArgs e)
             {
-                _imageEditor.Image.addLayer((DmiEXLayer)_layer.Clone());
+                _imageEditor.Image.AddLayer((DmiEXLayer)_layer.Clone());
             }
 
+            private void DeleteLayer(object sender, EventArgs e)
+            {
+                _imageEditor.Image.RemoveLayer(_layer.Index);
+            }
+            
             private void UpdateEditor(object sender, EventArgs e)
             {
-                layerIndexEditor.ValueChanged -= UpdateIndex;
-                layerIndexEditor.Value = _layer.Index;
-                layerIndexEditor.ValueChanged += UpdateIndex;
+                _layerIndexEditor.ValueChanged -= UpdateIndex;
+                _layerIndexEditor.Value = _layer.Index;
+                _layerIndexEditor.ValueChanged += UpdateIndex;
             }
 
             private void UpdateIndex(object sender, EventArgs e)
             {
-                if (layerIndexEditor.Value == null) return;
-                _imageEditor.Image.setLayerIndex(_layer, layerIndexEditor.Value.Value);
+                if (_layerIndexEditor.Value == null) return;
+                _imageEditor.Image.SetLayerIndex(_layer, _layerIndexEditor.Value.Value);
             }
         }
     }

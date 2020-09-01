@@ -12,8 +12,8 @@ namespace DMIEditor
     public class LabeledImageButton : Button
     {
         private bool _pressed = false;
-        protected Image img;
-        protected TextBlock label;
+        protected Image Img;
+        protected TextBlock Label;
         private StackPanel _stackPanel;
 
         public LabeledImageButton(BitmapImage bmI, string labeltext)
@@ -23,25 +23,25 @@ namespace DMIEditor
             _stackPanel = new StackPanel();
 
             //create image
-            img = new Image
+            Img = new Image
             {
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Stretch = Stretch.None
             };
-            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+            RenderOptions.SetBitmapScalingMode(Img, BitmapScalingMode.NearestNeighbor);
 
-            setImage(bmI);
+            SetImage(bmI);
 
                 //add to stackpanel
-            _stackPanel.Children.Add(img);
+            _stackPanel.Children.Add(Img);
 
             //create label
-            label = new TextBlock
+            Label = new TextBlock
             {
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center, Text = labeltext
             };
             //add to stackpanel
-            _stackPanel.Children.Add(label);
+            _stackPanel.Children.Add(Label);
 
             //add stackpanel to btn
             Content = _stackPanel;
@@ -68,9 +68,9 @@ namespace DMIEditor
             return _pressed;
         }
 
-        protected void setImage(BitmapImage bitmap)
+        protected void SetImage(BitmapImage bitmap)
         {
-            img.Source = bitmap;
+            Img.Source = bitmap;
         }
     }
 }

@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Transactions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using DMI_Parser;
+using DMIEditor.DmiEX;
 
 namespace DMIEditor
 {
@@ -17,12 +12,12 @@ namespace DMIEditor
     /// </summary>
     public partial class FileEditor : UserControl
     {
-        public readonly DmiEX DmiEx;
+        public readonly DmiEX.DmiEX DmiEx;
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
 
-        public FileEditor(DmiEX dmiEx, MainWindow main)
+        public FileEditor(DmiEX.DmiEX dmiEx, MainWindow main)
         {
             this.DmiEx = dmiEx;
             this.Main = main;
@@ -60,7 +55,7 @@ namespace DMIEditor
             StackPanel sp = new StackPanel();
             TextBlock txt = new TextBlock
             {
-                Text = $"\"{state.Id}\"", VerticalAlignment = System.Windows.VerticalAlignment.Center
+                Text = $"\"{state.Id}\"", VerticalAlignment = VerticalAlignment.Center
             };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
@@ -165,7 +160,7 @@ namespace DMIEditor
                 Click += Clicked;
                 state.idChanged += (sender, args) =>
                 {
-                    label.Text = $"\"{state.Id}\"";
+                    Label.Text = $"\"{state.Id}\"";
                 };
                 state.Images[0, 0].ImageChanged += ImageChanged;
             }
@@ -177,7 +172,7 @@ namespace DMIEditor
 
             private void ImageChanged(object sender, EventArgs e)
             {
-                setImage(_state.getImage(0,0));
+                SetImage(_state.getImage(0,0));
             }
         }
 

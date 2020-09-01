@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Windows.Media.Imaging;
 using DMI_Parser.Utils;
 using ImageProcessor;
 using ImageProcessor.Imaging;
 using ImageProcessor.Imaging.Formats;
 
-namespace DMIEditor
+namespace DMIEditor.DmiEX
 {
     public class DmiEXImage : ICloneable
     {
@@ -26,11 +24,11 @@ namespace DMIEditor
         {
             Width = bm.Width;
             Height = bm.Height;
-            addLayer(new DmiEXLayer(bm, 0));
+            AddLayer(new DmiEXLayer(bm, 0));
             ImageChanged += (sender, e) => _bufferedImage = null;
         }
 
-        public void setLayerIndex(DmiEXLayer layer, int index)
+        public void SetLayerIndex(DmiEXLayer layer, int index)
         {
             layer.Index = index;
             int duplicateIndex = index;
@@ -44,7 +42,7 @@ namespace DMIEditor
             }
         }
 
-        public void addLayer(DmiEXLayer l)
+        public void AddLayer(DmiEXLayer l)
         {
             //moving all layers in the way one step up
             int increaseAtIndex = l.Index;
@@ -58,27 +56,28 @@ namespace DMIEditor
             }
             
             _layers.Add(l);
-            sortLayers();
-            l.IndexChanged += sortLayers;
+            SortLayers();
+            l.IndexChanged += SortLayers;
             
             l.Changed += (sender, e) => ImageChanged?.Invoke(this, EventArgs.Empty); //any change on the layer means a change on the image
             LayerListChanged?.Invoke(this, EventArgs.Empty);
         }
         
-        public void addLayer(int index) => addLayer(new DmiEXLayer(new Bitmap(Width, Height), index));
+        public void AddLayer(int index) => AddLayer(new DmiEXLayer(new Bitmap(Width, Height), index));
 
-        public void removeLayer(int index)
+        public void RemoveLayer(int index)
         {
-            DmiEXLayer l = getLayerByIndex(index);
+            DmiEXLayer l = GetLayerByIndex(index);
             _layers.Remove(l);
+            LayerListChanged?.Invoke(this, EventArgs.Empty);
         }
         
-        private void sortLayers(object sender = null, EventArgs e = null)
+        private void SortLayers(object sender = null, EventArgs e = null)
             => _layers.Sort((l1,l2)=>l1.Index.CompareTo(l2.Index));
 
-        public DmiEXLayer[] getLayers() => _layers.ToArray();
+        public DmiEXLayer[] GetLayers() => _layers.ToArray();
 
-        public DmiEXLayer getLayerByIndex(int index)
+        public DmiEXLayer GetLayerByIndex(int index)
         {
             DmiEXLayer layer = _layers.Find((l) => l.Index == index);
             if(layer == null) throw new ArgumentException("No Layer with that Index exists");
@@ -86,36 +85,35 @@ namespace DMIEditor
         }
 
         private BitmapImage _bufferedImage;
-        public BitmapImage getImage()
+        public BitmapImage GetImage()
         {
-            if (_bufferedImage == null)
+            if (_bufferedImage != null) return _bufferedImage;
+            
+            ImageFactory imgF = new ImageFactory();
+            bool first = true;
+
+            SortLayers();
+            for (int i = 0; i < _layers.Count; i++)
             {
-                ImageFactory imgF = new ImageFactory();
-                bool first = true;
-
-                sortLayers();
-                for (int i = 0; i < _layers.Count; i++)
+                DmiEXLayer dmiExLayer = _layers[i];
+                if (!dmiExLayer.Visible) continue;
+                if (first)
                 {
-                    DmiEXLayer dmiExLayer = _layers[i];
-                    if (!dmiExLayer.Visible) continue;
-                    if (first)
-                    {
-                        imgF.Load(dmiExLayer.Bitmap);
-                        first = false;
-                        continue;
-                    }
-
-                    ImageLayer l = new ImageLayer();
-                    l.Image = dmiExLayer.Bitmap;
-                    imgF.Overlay(l);
+                    imgF.Load(dmiExLayer.Bitmap);
+                    first = false;
+                    continue;
                 }
 
-                imgF.Resolution(Width, Height)
-                    .Format(new PngFormat())
-                    .BackgroundColor(Color.Transparent);
-
-                _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(imgF);
+                ImageLayer l = new ImageLayer();
+                l.Image = dmiExLayer.Bitmap;
+                imgF.Overlay(l);
             }
+
+            imgF.Resolution(Width, Height)
+                .Format(new PngFormat())
+                .BackgroundColor(Color.Transparent);
+
+            _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(imgF);
             return _bufferedImage;
         }
 
@@ -125,7 +123,7 @@ namespace DMIEditor
             image._layers = new List<DmiEXLayer>();
             foreach (var layer in _layers)
             {
-                image.addLayer((DmiEXLayer)layer.Clone());
+                image.AddLayer((DmiEXLayer)layer.Clone());
             }
 
             return image;

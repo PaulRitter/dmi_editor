@@ -125,10 +125,10 @@ namespace DMIEditor
 
         public void LoadFile(string path)
         {
-            DmiEX dmiFile;
+            DmiEX.DmiEX dmiFile;
             try
             {
-                dmiFile = DmiEX.FromDMI(path);
+                dmiFile = DmiEX.DmiEX.FromDmi(path);
             }
             catch (ParsingException e)
             {

@@ -10,10 +10,12 @@ namespace DMIEditor
         {
             this.tabItem = tabItem;
             this.Margin = new Thickness(2d);
-            TextBlock txt = new TextBlock();
-            txt.Background = System.Windows.Media.Brushes.Red;
-            txt.Foreground = System.Windows.Media.Brushes.White;
-            txt.Text = "X";
+            TextBlock txt = new TextBlock
+            {
+                Background = System.Windows.Media.Brushes.Red,
+                Foreground = System.Windows.Media.Brushes.White,
+                Text = "X"
+            };
             Content = txt;
         }
     }

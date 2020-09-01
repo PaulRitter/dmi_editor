@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using DMIEditor.DmiEX;
 
 namespace DMIEditor.Tools
 {
@@ -27,9 +28,9 @@ namespace DMIEditor.Tools
         public abstract void onMouseMove(DmiEXImage dmiExImage, Point p);
 
         protected void setPixel(Point p, Color c)
-            => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.setPixel(p, c);
+            => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.SetPixel(p, c);
 
-        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.getPixel(p);
+        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetPixel(p);
 
         protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Width;
         protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Height;

@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using DMIEditor.DmiEX;
 
 namespace DMIEditor.Tools
 {

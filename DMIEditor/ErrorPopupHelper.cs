@@ -3,7 +3,7 @@ using System.Windows;
 
 namespace DMIEditor
 {
-    public class ErrorPopupHelper
+    public static class ErrorPopupHelper
     {
         public static void Create(Exception e)
         {
@@ -11,7 +11,7 @@ namespace DMIEditor
             Console.WriteLine(e);
         }
 
-        public static void Create(String e)
+        public static void Create(string e)
         {
             MessageBox.Show(e, "Exception occured", MessageBoxButton.OK, MessageBoxImage.Error);
         }
