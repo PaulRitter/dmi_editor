@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Controls;
@@ -265,7 +266,14 @@ namespace DMIEditor
 
             private void DeleteLayer(object sender, EventArgs e)
             {
-                _imageEditor.Image.RemoveLayer(_layer.Index);
+                try
+                {
+                    _imageEditor.Image.RemoveLayer(_layer.Index);
+                }
+                catch (WarningException ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
             }
             
             private void UpdateEditor(object sender, EventArgs e)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using DMI_Parser.Utils;
@@ -67,6 +68,7 @@ namespace DMIEditor.DmiEX
 
         public void RemoveLayer(int index)
         {
+            if(_layers.Count == 1) throw new WarningException("You can't remove the only Layer of the image");
             DmiEXLayer l = GetLayerByIndex(index);
             _layers.Remove(l);
             LayerListChanged?.Invoke(this, EventArgs.Empty);
