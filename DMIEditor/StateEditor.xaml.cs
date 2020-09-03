@@ -73,7 +73,13 @@ namespace DMIEditor
                     idBox.Text = State.Id;
                 }
             };
-            stateValues.Children.Add(idBox);
+            var p = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+            p.Children.Add(new TextBlock(){Text = "ID: "});
+            p.Children.Add(idBox);
+            stateValues.Children.Add(p);
 
             //dir count
             var dirCountBox = new ComboBox();
@@ -86,7 +92,13 @@ namespace DMIEditor
             {
                 State.setDirs((DirCount) dirCountBox.SelectedItem);
             };
-            stateValues.Children.Add(dirCountBox);
+            p = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+            p.Children.Add(new TextBlock(){Text = "Dir count: "});
+            p.Children.Add(dirCountBox);
+            stateValues.Children.Add(p);
             
 
             //frame count
@@ -102,7 +114,7 @@ namespace DMIEditor
                 if(frames != null)
                     State.setFrames(frames.Value);
             };
-            var p = new StackPanel()
+            p = new StackPanel()
             {
                 Orientation = Orientation.Horizontal
             };

@@ -15,15 +15,15 @@
         </Border>
         <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="90*"/>
-                    <RowDefinition Height="10*"/>
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
                 </ScrollViewer>
-                <ScrollViewer Grid.Row="1"  VerticalScrollBarVisibility="Auto">
-                    <StackPanel  x:Name="stateValues" Orientation="Horizontal"/>
+                <ScrollViewer Grid.Column="1"  VerticalScrollBarVisibility="Auto">
+                    <StackPanel  x:Name="stateValues" Orientation="Vertical"/>
                 </ScrollViewer>
             </Grid>
         </Border>
