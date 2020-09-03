@@ -31,8 +31,7 @@ namespace DMIEditor.DmiEX
 
         public override void createNewState(string name)
         {
-            RawDmiState raw = RawDmiState.Default;
-            raw.Id = name;
+            RawDmiState raw = RawDmiState.Default(name);
 
             DmiEXImage[,] images = new DmiEXImage[1, 1];
             images[0,0] = (DmiEXImage) CreateEmptyImage();

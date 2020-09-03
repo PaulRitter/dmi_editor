@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
+using DMI_Parser;
 using DMI_Parser.Utils;
 using ImageProcessor;
 using ImageProcessor.Imaging;
@@ -81,6 +82,11 @@ namespace DMIEditor.DmiEX
             imageStream.Close();
             Bitmap = newBitmap;
             ImageChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public DmiEXState ToDmiExState(Dmi parent, string id)
+        {
+            return new DmiEXState(parent, id, Bitmap);
         }
 
 #nullable enable

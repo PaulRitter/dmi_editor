@@ -31,6 +31,10 @@ namespace DMIEditor.DmiEX
             Images = images;
         }
 
+        public DmiEXState(Dmi parent, string id, Bitmap bitmap) : this(parent, new DmiEXImage[,]{{new DmiEXImage(bitmap)}}, RawDmiState.Default(id))
+        {
+        }
+
         public override BitmapImage getImage(int dir, int frame)
         {
             return Images[dir, frame].GetImage();

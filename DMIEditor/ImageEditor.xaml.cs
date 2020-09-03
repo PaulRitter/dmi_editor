@@ -35,7 +35,22 @@ namespace DMIEditor
             }
         }
 
-        public DmiEXLayer SelectedLayer => Image.GetLayers().First((l) => l.Index == _layerIndex);
+        public DmiEXLayer SelectedLayer
+        {
+            get
+            {
+                //todo solve this differently, this is ew..
+                try
+                {
+                    return Image.GetLayers().First((l) => l.Index == LayerIndex);
+                }
+                catch (InvalidOperationException ex) //layerindex not valid anymore
+                {
+                    LayerIndex = Image.GetLayers().First().Index;
+                    return Image.GetLayers().First((l) => l.Index == LayerIndex);
+                }
+            }
+        }
 
         private int HighestIndex => Image.GetLayers().Max((l) => l.Index);
         private int LowestIndex => Image.GetLayers().Min((l) => l.Index);
@@ -183,7 +198,11 @@ namespace DMIEditor
                 _imageEditor = imageEditor;
                 _layer = layer;
 
-                StackPanel sp = (StackPanel) Content;
+                StackPanel main_sp = new StackPanel{ Orientation = Orientation.Vertical};
+                
+                StackPanel upper_sp = (StackPanel) Content;
+                Content = main_sp;
+                main_sp.Children.Add(upper_sp);
 
                 _visibleText.Text = _layer.Visible ? "Hide" : "Show";
 
@@ -194,15 +213,8 @@ namespace DMIEditor
                     Content = _visibleText
                 };
                 visibleBtn.Click += ToggleVisibility;
-                buttonPanel.Children.Add(visibleBtn);
+                upper_sp.Children.Add(visibleBtn);
 
-                Button duplicateButton = new Button
-                {
-                    Content = "Duplicate"
-                };
-                duplicateButton.Click += DuplicateLayer;
-                buttonPanel.Children.Add(duplicateButton);
-                
                 _layerIndexEditor = new IntegerUpDown()
                 {
                     Increment = 1,
@@ -215,7 +227,21 @@ namespace DMIEditor
                 };
                 p.Children.Add(new TextBlock(){Text = "Index: "});
                 p.Children.Add(_layerIndexEditor);
-                buttonPanel.Children.Add(p);
+                upper_sp.Children.Add(p);
+                
+                Button duplicateButton = new Button
+                {
+                    Content = "Duplicate"
+                };
+                duplicateButton.Click += DuplicateLayer;
+                buttonPanel.Children.Add(duplicateButton);
+                
+                Button exportButton = new Button
+                {
+                    Content = "Export as State"
+                };
+                exportButton.Click += ExportLayer;
+                buttonPanel.Children.Add(exportButton);
                 
                 Button deleteButton = new Button
                 {
@@ -224,7 +250,7 @@ namespace DMIEditor
                 deleteButton.Click += DeleteLayer;
                 buttonPanel.Children.Add(deleteButton);
                 
-                sp.Children.Add(buttonPanel);
+                main_sp.Children.Add(buttonPanel);
 
                 Click += Clicked;
 
@@ -290,6 +316,35 @@ namespace DMIEditor
             {
                 if (_layerIndexEditor.Value == null) return;
                 _imageEditor.Image.SetLayerIndex(_layer, _layerIndexEditor.Value.Value);
+            }
+
+            private void ExportLayer(object sender, EventArgs e)
+            {
+                new ExportLayerPrompt(_layer, _imageEditor).Show();
+            }
+
+            private class ExportLayerPrompt : PromptWindow
+            {
+                private FileEditor _editor;
+                private DmiEXLayer _layer;
+                public ExportLayerPrompt(DmiEXLayer layer, ImageEditor editor) : base("Enter an ID for the new State:", "Export Layer to State")
+                {
+                    _layer = layer;
+                    _editor = editor.StateEditor.FileEditor;
+                }
+
+                protected override void promptSent(string prompt)
+                {
+                    try
+                    {
+                        _editor.DmiEx.addState(_layer.ToDmiExState(_editor.DmiEx, prompt));
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                    
+                }
             }
         }
     }

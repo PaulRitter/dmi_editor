@@ -13,7 +13,7 @@ namespace DMIEditor
     /// </summary>
     public partial class StateEditor : UserControl
     {
-        private readonly FileEditor _fileEditor;
+        public readonly FileEditor FileEditor;
         
         public readonly int StateIndex;
         public readonly DmiEXState State;
@@ -36,7 +36,7 @@ namespace DMIEditor
         {
             InitializeComponent();
 
-            _fileEditor = fileEditor;
+            FileEditor = fileEditor;
             StateIndex = stateIndex;
             State = state;
             

@@ -79,11 +79,6 @@ namespace DMIEditor
                 try
                 {
                     var id = addStateInputfield.Text;
-                    if (DmiEx.States.Any(state => state.Id == id))
-                    {
-                        throw new ArgumentException("A state with that id already exists");
-                    }
-                    
                     dmiEx.createNewState(id);
                 }
                 catch (ArgumentException ex)
