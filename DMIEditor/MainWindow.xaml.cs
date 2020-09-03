@@ -47,7 +47,11 @@ namespace DMIEditor
             
             Button saveFileBtn = new Button {Content = "Save"};
             toolBar.Items.Add(saveFileBtn);
-            saveFileBtn.Click += openSaveFileDialog;
+            saveFileBtn.Click += DMISave;
+            
+            Button saveAsFileBtn = new Button {Content = "Save As"};
+            toolBar.Items.Add(saveAsFileBtn);
+            saveAsFileBtn.Click += DMISaveAs;
 
             IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
             
@@ -65,7 +69,7 @@ namespace DMIEditor
             toolBar.Items.Add(_colorPicker);
         }
 
-        public FileEditor SelectedEditor
+        public TabItem SelectedTab
         {
             get
             {
@@ -73,12 +77,15 @@ namespace DMIEditor
                 {
                     if (item.IsSelected)
                     {
-                        return (FileEditor)item.Content;
+                        return item;
                     }
                 }
+
                 return null;
             }
         }
+
+        public FileEditor SelectedEditor => (FileEditor)SelectedTab.Content;
 
         public Color GetColor()
         {
@@ -99,7 +106,21 @@ namespace DMIEditor
             return _selectedTool;
         }
 
-        public void openSaveFileDialog(object sender, EventArgs e)
+        public void DMISave(object sender, EventArgs e)
+        {
+            if (SelectedEditor == null) return;
+            if (SelectedEditor.Path == "")
+            {
+                DMISaveAs(sender, e);
+                return;
+            }
+            
+            FileStream stream = new FileStream(SelectedEditor.Path, FileMode.Create);
+            SelectedEditor.DmiEx.SaveAsDmi(stream);
+            stream.Close();
+        }
+
+        public void DMISaveAs(object sender, EventArgs e)
         {
             if (SelectedEditor == null) return;
 
@@ -115,6 +136,9 @@ namespace DMIEditor
                     Stream fileStream = sfd.OpenFile();
                     SelectedEditor.DmiEx.SaveAsDmi(fileStream);
                     fileStream.Close();
+
+                    SelectedEditor.Path = sfd.FileName;
+                    ((TabItemHeader) SelectedTab.Header).Text.Text = sfd.SafeFileName;
                 }
                 catch (Exception ex)
                 {
@@ -159,9 +183,9 @@ namespace DMIEditor
             addEditor(dmiFile, path);
         }
 
-        private void addEditor(DmiEX.DmiEX dmiEx, string path)
+        private void addEditor(DmiEX.DmiEX dmiEx, string path = "")
         {
-            string filename = path.Split(@"\").Last();            
+            string filename = path == "" ? "unsaved file" : path.Split(@"\").Last();            
             if ((from TabItem editorTab in mainTabControl.Items select (FileEditor) editorTab.Content).Any(fileEditor => fileEditor.Path == path))
             {
                 throw new WarningException($"File {filename} is already open");
@@ -170,19 +194,9 @@ namespace DMIEditor
             FileEditor fE = new FileEditor(dmiEx, this, path);
             TabItem tabItem = new TabItem();
             
-            StackPanel sp = new StackPanel();
-            TextBlock txt = new TextBlock
-            {
-                Text = filename, VerticalAlignment = VerticalAlignment.Center
-            };
-            sp.Orientation = Orientation.Horizontal;
-            sp.Children.Add(txt);
-
-            TabCloseButton cBtn = new TabCloseButton(tabItem);
-            cBtn.Click += CloseButtonClicked;
-            sp.Children.Add(cBtn);
-
-            tabItem.Header = sp;
+            TabItemHeader header = new TabItemHeader(filename, tabItem);
+            header.TabCloseButton.Click += CloseButtonClicked;
+            tabItem.Header = header;
 
             tabItem.Content = fE;
             mainTabControl.Items.Add(tabItem);
@@ -193,7 +207,7 @@ namespace DMIEditor
         {
             DmiEX.DmiEX dmiEx = new DmiEX.DmiEX(1.0f, 32, 32);
             try{
-                addEditor(dmiEx, "unnamed.dmi");
+                addEditor(dmiEx, "");
             }
             catch (Exception ex)
             {

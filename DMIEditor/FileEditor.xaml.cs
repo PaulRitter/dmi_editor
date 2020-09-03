@@ -14,7 +14,7 @@ namespace DMIEditor
     public partial class FileEditor : UserControl
     {
         public readonly DmiEX.DmiEX DmiEx;
-        public string Path { get; private set; }
+        public string Path { get; set; }
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
@@ -26,13 +26,10 @@ namespace DMIEditor
             Path = path;
             InitializeComponent();
 
+            dmiEx.StateListChanged += CreateStateButtons;
+            
             //adding state buttons
-            for (int i = 0; i < dmiEx.States.Count; i++)
-            {
-                StateButton btn = new StateButton(this, i, (DmiEXState)dmiEx.States[i]);
-                statePanel.Children.Add(btn);
-                _stateButtons.Add(btn);
-            }
+            CreateStateButtons();
             
             // create dmi value editor
             var widthEditor = new IntegerUpDown()
@@ -75,8 +72,49 @@ namespace DMIEditor
             p.Children.Add(heightEditor);
             dmiValues.Children.Add(p);
 
+            var addStateInputfield = new TextBox();
+            var addStateButton = new Button{ Content = "Add new state"};
+            addStateButton.Click += (s, e) =>
+            {
+                try
+                {
+                    var id = addStateInputfield.Text;
+                    if (DmiEx.States.Any(state => state.Id == id))
+                    {
+                        throw new ArgumentException("A state with that id already exists");
+                    }
+                    
+                    dmiEx.createNewState(id);
+                }
+                catch (ArgumentException ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
+            };
+            p = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Children =
+                {
+                    addStateInputfield,
+                    addStateButton
+                }
+            };
+            dmiValues.Children.Add(p);
+
             //image selection hotkeys
             stateTabControl.SelectionChanged += UpdateStateUi;
+        }
+
+        private void CreateStateButtons(object sender = null, EventArgs e = null)
+        {
+            statePanel.Children.Clear();
+            for (int i = 0; i < DmiEx.States.Count; i++)
+            {
+                StateButton btn = new StateButton(this, i, (DmiEXState)DmiEx.States[i]);
+                statePanel.Children.Add(btn);
+                _stateButtons.Add(btn);
+            }
         }
 
         private void SelectOrOpenState(int stateIndex)
