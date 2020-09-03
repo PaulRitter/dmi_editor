@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using DMI_Parser;
+using DMI_Parser.Raw;
 
 namespace DMIEditor.DmiEX
 {
@@ -19,15 +21,24 @@ namespace DMIEditor.DmiEX
         {
             DmiEX dmiEx = new DmiEX(dmi.Version, dmi.Width, dmi.Height);
             
-            List<DMIState> states = new List<DMIState>();
             foreach (var state in dmi.States)
             {
-                states.Add(DmiEXState.FromDmiState(dmiEx, state));
+                dmiEx.addState(DmiEXState.FromDmiState(dmiEx, state)); //todo change
             }
 
-            dmiEx.States = states;
-
             return dmiEx;
+        }
+
+        public override void createNewState(string name)
+        {
+            RawDmiState raw = RawDmiState.Default;
+            raw.Id = name;
+
+            DmiEXImage[,] images = new DmiEXImage[1, 1];
+            images[0,0] = (DmiEXImage) CreateEmptyImage();
+            
+            DmiEXState dmiState = new DmiEXState(this, images, raw);
+            addState(dmiState);
         }
     }
 }

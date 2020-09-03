@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using DMIEditor.DmiEX;
+using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
 {
@@ -32,6 +33,47 @@ namespace DMIEditor
                 statePanel.Children.Add(btn);
                 _stateButtons.Add(btn);
             }
+            
+            // create dmi value editor
+            var widthEditor = new IntegerUpDown()
+            {
+                Minimum = 1,
+                Increment = 1,
+                Value = DmiEx.Width
+            };
+            widthEditor.ValueChanged += (sender, args) =>
+            {
+                var width = widthEditor.Value;
+                if(width != null)
+                    dmiEx.setWidth(width.Value);
+            };
+            var p = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+            p.Children.Add(new TextBlock(){Text = "Width: "});
+            p.Children.Add(widthEditor);
+            dmiValues.Children.Add(p);
+            
+            var heightEditor = new IntegerUpDown()
+            {
+                Minimum = 1,
+                Increment = 1,
+                Value = DmiEx.Height
+            };
+            heightEditor.ValueChanged += (sender, args) =>
+            {
+                var height = widthEditor.Value;
+                if(height != null)
+                    dmiEx.setHeight(height.Value);
+            };
+            p = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal
+            };
+            p.Children.Add(new TextBlock(){Text = "Height: "});
+            p.Children.Add(heightEditor);
+            dmiValues.Children.Add(p);
 
             //image selection hotkeys
             stateTabControl.SelectionChanged += UpdateStateUi;

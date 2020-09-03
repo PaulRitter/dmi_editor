@@ -23,9 +23,9 @@ namespace DMIEditor.DmiEX
             
             return new DmiEXState(parent, images, raw);
         }
-        
+
         public new DmiEXImage[,] Images { get; private set; }
-        
+
         public DmiEXState(Dmi parent, DmiEXImage[,] images, RawDmiState rawDmiState) : base(parent, null, rawDmiState)
         {
             Images = images;
@@ -46,13 +46,18 @@ namespace DMIEditor.DmiEX
             Images = new DmiEXImage[dirs,frames];
         }
 
-        protected override ICloneable[,] getOldImagesForArrayResize() => Images;
+        protected override ICloneable[,] GetImages() => Images;
 
         public override int getImageCount() => Images.Length;
 
         protected override void addImage(int dir, int frame, object img)
         {
             Images[dir, frame] = (DmiEXImage) img;
+        }
+
+        protected override void resizeImage(int dir, int frame)
+        {
+            Images[dir,frame].Resize(Width, Height);
         }
     }
 }

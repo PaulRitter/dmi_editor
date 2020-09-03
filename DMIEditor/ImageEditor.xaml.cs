@@ -63,6 +63,8 @@ namespace DMIEditor
             Image.LayerListChanged += UpdateLayerUi;
             Image.LayerListChanged += UpdateImageDisplay;
             Image.ImageChanged += UpdateImageDisplay;
+
+            stateEditor.State.Parent.SizeChanged += CreateBackgroundImage;
             
             CreateBackgroundImage();
             
@@ -71,7 +73,7 @@ namespace DMIEditor
             UpdateImageDisplay();
         }
 
-        private void CreateBackgroundImage()
+        private void CreateBackgroundImage(object sender = null, EventArgs e = null)
         {
             //creating background map (tiling)
             var backgroundMap = new Bitmap(Image.Width*2, Image.Height*2);

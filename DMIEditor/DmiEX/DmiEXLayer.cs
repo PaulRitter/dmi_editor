@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Media.Imaging;
 using DMI_Parser.Utils;
+using ImageProcessor;
+using ImageProcessor.Imaging;
+using ImageProcessor.Imaging.Formats;
 
 namespace DMIEditor.DmiEX
 {
     public class DmiEXLayer : IComparable, ICloneable
     {
-        public readonly Bitmap Bitmap;
+        public Bitmap Bitmap { get; private set; }
 
         private int _index;
         private bool _visible = true;
@@ -62,6 +66,21 @@ namespace DMIEditor.DmiEX
         public BitmapImage GetImage()
         {
             return _bufferedImage ??= BitmapUtils.Bitmap2BitmapImage(Bitmap);
+        }
+
+        public void Resize(int width, int height)
+        {
+            MemoryStream imageStream = new MemoryStream();
+            ImageFactory imgF = new ImageFactory()
+                .Load(Bitmap)
+                .Resize(new ResizeLayer(new Size(width, height), ResizeMode.Crop, AnchorPosition.TopLeft))
+                .Format(new PngFormat())
+                .Save(imageStream);
+            
+            Bitmap newBitmap = new Bitmap(imageStream);
+            imageStream.Close();
+            Bitmap = newBitmap;
+            ImageChanged?.Invoke(this, EventArgs.Empty);
         }
 
 #nullable enable

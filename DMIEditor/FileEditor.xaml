@@ -12,11 +12,22 @@
             <RowDefinition Height="30*"/>
         </Grid.RowDefinitions>
         <TabControl Grid.Row="0" x:Name="stateTabControl"/>
-        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0.2">
-            <ScrollViewer  VerticalScrollBarVisibility="Auto">
-                <WrapPanel Name="statePanel">
-                </WrapPanel>
-            </ScrollViewer>
-        </Border>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0.2">
+                <ScrollViewer  VerticalScrollBarVisibility="Auto">
+                    <WrapPanel x:Name="statePanel">
+                    </WrapPanel>
+                </ScrollViewer>
+            </Border>
+            <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
+                <StackPanel  Orientation="Vertical" x:Name="dmiValues">
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

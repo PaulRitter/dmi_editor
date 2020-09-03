@@ -18,8 +18,7 @@ namespace DMIEditor.DmiEX
         public int Height { get; private set; }
         public event EventHandler ImageChanged;
         public event EventHandler LayerListChanged;
-
-
+        
         public DmiEXImage(int width, int height) : this(new Bitmap(width,height)) {}
 
         public DmiEXImage(Bitmap bm)
@@ -93,6 +92,9 @@ namespace DMIEditor.DmiEX
         {
             if (_bufferedImage != null) return _bufferedImage;
 
+            if (_layers.FindAll((l) => l.Visible).Count == 0)
+                return BitmapUtils.Bitmap2BitmapImage(new Bitmap(Width, Height));
+
             _bufferedImage = BitmapUtils.ImageFactory2BitmapImage(getImageFactory());
             return _bufferedImage;
         }
@@ -134,6 +136,16 @@ namespace DMIEditor.DmiEX
                 .BackgroundColor(Color.Transparent);
 
             return imgF;
+        }
+
+        public void Resize(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            for (int i = 0; i < _layers.Count; i++)
+            {
+                _layers[i].Resize(width,height);
+            }
         }
         
         public object Clone()
