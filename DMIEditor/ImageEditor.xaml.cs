@@ -61,6 +61,7 @@ namespace DMIEditor
             img.MouseEnter += OnMouseEnterOnImage;
 
             Image.LayerListChanged += UpdateLayerUi;
+            Image.LayerListChanged += UpdateImageDisplay;
             Image.ImageChanged += UpdateImageDisplay;
             
             CreateBackgroundImage();
