@@ -28,6 +28,7 @@ namespace DMIEditor.DmiEX
             Height = bm.Height;
             AddLayer(new DmiEXLayer(bm, 0));
             ImageChanged += (sender, e) => _bufferedImage = null;
+            LayerListChanged += (sender, e) => ImageChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void SetLayerIndex(DmiEXLayer layer, int index)
