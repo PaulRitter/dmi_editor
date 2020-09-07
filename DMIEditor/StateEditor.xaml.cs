@@ -5,6 +5,7 @@ using System.Windows.Input;
 using DMI_Parser;
 using DMI_Parser.Extended;
 using DMI_Parser.Utils;
+using DMIEditor.Undo;
 using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
@@ -63,7 +64,7 @@ namespace DMIEditor
         private void CreateStateValueEditor()
         {
             //stateID
-            var idBox = new TextBox {Text = State.Id};
+            var idBox = new TextBox {Text = State.Id};  //todo update on state change
             idBox.KeyDown += (sender, args) =>
             {
                 if (args.Key != Key.Enter) return;
@@ -87,7 +88,7 @@ namespace DMIEditor
             stateValues.Children.Add(p);
 
             //dir count
-            var dirCountBox = new ComboBox();
+            var dirCountBox = new ComboBox(); //todo update on state change
             foreach (DirCount dir in Enum.GetValues(typeof(DirCount)))
             {
                 dirCountBox.Items.Add(dir);
@@ -95,6 +96,7 @@ namespace DMIEditor
             dirCountBox.SelectedItem = State.Dirs;
             dirCountBox.SelectionChanged += (sender, args) =>
             {
+                MainWindow.Current.UndoManager.RegisterUndoItem(new StateImageArraySizeChangeUndoItem(State));
                 State.Dirs = (DirCount) dirCountBox.SelectedItem;
             };
             p = new StackPanel()
@@ -107,7 +109,7 @@ namespace DMIEditor
             
 
             //frame count
-            var frameCountEditor = new IntegerUpDown()
+            var frameCountEditor = new IntegerUpDown()  //todo update on state change
             {
                 Minimum = 1,
                 Increment = 1,
@@ -116,7 +118,11 @@ namespace DMIEditor
             frameCountEditor.ValueChanged += (sender, args) =>
             {
                 var frames = frameCountEditor.Value;
-                if(frames != null) State.Frames = frames.Value;
+                if (frames != null)
+                {
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateImageArraySizeChangeUndoItem(State));
+                    State.Frames = frames.Value;
+                }
             };
             p = new StackPanel()
             {
@@ -127,7 +133,7 @@ namespace DMIEditor
             stateValues.Children.Add(p);
 
             //loop
-            var loopCountEditor = new IntegerUpDown()
+            var loopCountEditor = new IntegerUpDown()  //todo update on state change
             {
                 Minimum = 0,
                 Increment = 1,
@@ -153,7 +159,7 @@ namespace DMIEditor
             stateValues.Children.Add(p);
 
             //rewind
-            var rewindBox = new CheckBox()
+            var rewindBox = new CheckBox()  //todo update on state change
             {
                 IsChecked = State.Rewind
             };
@@ -169,6 +175,7 @@ namespace DMIEditor
             p.Children.Add(rewindBox);
             
             //todo movement flag editor
+            //todo update on state change
             
             stateValues.Children.Add(p);
         }
