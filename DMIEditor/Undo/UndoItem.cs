@@ -1,6 +1,6 @@
 ﻿namespace DMIEditor.Undo
 {
-    public abstract class Memento
+    public abstract class UndoItem
     {
         public abstract void ReverseAction();
     }

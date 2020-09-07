@@ -3,12 +3,12 @@ using DMI_Parser.Extended;
 
 namespace DMIEditor.Undo
 {
-    public class LayerNewMemento : Memento
+    public class LayerNewUndoItem : UndoItem
     {
         private DmiEXImage _image;
         private DmiEXLayer _layer;
 
-        public LayerNewMemento(DmiEXImage image, DmiEXLayer layer)
+        public LayerNewUndoItem(DmiEXImage image, DmiEXLayer layer)
         {
             _image = image;
             _layer = layer;

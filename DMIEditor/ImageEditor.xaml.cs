@@ -161,7 +161,7 @@ namespace DMIEditor
         private void AddLayerAtIndex(int index)
         {
             DmiEXLayer l = Image.AddLayer(index);
-            MainWindow.Current.UndoManager.RegisterUndoItem(new LayerNewMemento(Image, l));
+            MainWindow.Current.UndoManager.RegisterUndoItem(new LayerNewUndoItem(Image, l));
         }
 
         private void UpdateImageDisplay(object sender = null, EventArgs e = null)
@@ -272,6 +272,7 @@ namespace DMIEditor
 
             private void Clicked(object sender, EventArgs e)
             {
+                
                 try{
                     _imageEditor.LayerIndex = _layer.Index;
                 }
@@ -314,6 +315,7 @@ namespace DMIEditor
 
             private void DeleteLayer(object sender, EventArgs e)
             {
+                MainWindow.Current.UndoManager.RegisterUndoItem(new LayerDeletedUndoItem(_imageEditor.Image, _layer));
                 try
                 {
                     _imageEditor.Image.RemoveLayer(_layer);
