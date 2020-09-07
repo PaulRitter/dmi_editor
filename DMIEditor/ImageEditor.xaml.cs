@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using DMI_Parser.Extended;
 using DMI_Parser.Utils;
+using DMIEditor.Undo;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
@@ -134,7 +135,7 @@ namespace DMIEditor
                     Text = "Add layer above"
                 }
             };
-            addHighBtn.Click += (sender, e) => Image.AddLayer(HighestIndex+1);
+            addHighBtn.Click += AddLayerOnTop;
             LayerStackPanel.Children.Add(addHighBtn);
             
             foreach (var btn in Image.GetLayers().Reverse().Select(layer => new LayerButton(this, layer)))
@@ -150,8 +151,17 @@ namespace DMIEditor
                     Text = "Add layer below"
                 }
             };
-            addLowBtn.Click += (sender, e) => Image.AddLayer(LowestIndex-1);
+            addLowBtn.Click += AddLayerOnBottom;
             LayerStackPanel.Children.Add(addLowBtn);
+        }
+
+        private void AddLayerOnTop(object sender, EventArgs e) => AddLayerAtIndex(HighestIndex + 1);
+        private void AddLayerOnBottom(object sender, EventArgs e) => AddLayerAtIndex(LowestIndex - 1);
+
+        private void AddLayerAtIndex(int index)
+        {
+            DmiEXLayer l = Image.AddLayer(index);
+            MainWindow.Current.UndoManager.RegisterUndoItem(new LayerNewMemento(Image, l));
         }
 
         private void UpdateImageDisplay(object sender = null, EventArgs e = null)
@@ -306,7 +316,7 @@ namespace DMIEditor
             {
                 try
                 {
-                    _imageEditor.Image.RemoveLayer(_layer.Index);
+                    _imageEditor.Image.RemoveLayer(_layer);
                 }
                 catch (WarningException ex)
                 {

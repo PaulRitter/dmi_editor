@@ -26,6 +26,7 @@ namespace DMIEditor
         private EditorTool _selectedTool;
         public static MainWindow Current;
         private ColorPicker _colorPicker;
+        public readonly UndoManager UndoManager;
 
         public event EventHandler ToolSelectionChanged;
 
@@ -34,6 +35,7 @@ namespace DMIEditor
             if(Current != null) throw new Exception("Mainwindow already exists");
 
             Current = this;
+            UndoManager = new UndoManager();
 
             InitializeComponent();
             
@@ -67,6 +69,15 @@ namespace DMIEditor
                 SelectedColor = System.Windows.Media.Colors.Black, ShowDropDownButton = false
             };
             toolBar.Items.Add(_colorPicker);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.Z)
+            {
+                UndoManager.Undo();
+            }
         }
 
         private TabItem SelectedTab
