@@ -3,7 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using DMI_Parser;
-using DMIEditor.DmiEX;
+using DMI_Parser.Extended;
+using DMI_Parser.Utils;
 using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
@@ -15,7 +16,7 @@ namespace DMIEditor
     {
         public readonly FileEditor FileEditor;
         
-        public readonly int StateIndex;
+        public readonly int StateIndex; //todo ditch this
         public readonly DmiEXState State;
         
         public event EventHandler ImageEditorChanged;
@@ -47,12 +48,16 @@ namespace DMIEditor
             CreateStateValueEditor();
             
             //subscribe to state events
-            State.dirCountChanged += CreateImageButtons;
-            State.frameCountChanged += CreateImageButtons;
+            State.ImageArrayChanged += OnImageArrayChanged;
 
             CreateImageButtons();
             
             //TODO delays (maybe add into frame selection)
+        }
+
+        private void OnImageArrayChanged(object sender, EventArgs e)
+        {
+            CreateImageButtons();
         }
 
         private void CreateStateValueEditor()
@@ -65,7 +70,7 @@ namespace DMIEditor
                 
                 try
                 {
-                    State.setID(idBox.Text);
+                    State.Id = idBox.Text;
                 }
                 catch (ArgumentException)
                 {
@@ -90,7 +95,7 @@ namespace DMIEditor
             dirCountBox.SelectedItem = State.Dirs;
             dirCountBox.SelectionChanged += (sender, args) =>
             {
-                State.setDirs((DirCount) dirCountBox.SelectedItem);
+                State.Dirs = (DirCount) dirCountBox.SelectedItem;
             };
             p = new StackPanel()
             {
@@ -111,8 +116,7 @@ namespace DMIEditor
             frameCountEditor.ValueChanged += (sender, args) =>
             {
                 var frames = frameCountEditor.Value;
-                if(frames != null)
-                    State.setFrames(frames.Value);
+                if(frames != null) State.Frames = frames.Value;
             };
             p = new StackPanel()
             {
@@ -137,7 +141,7 @@ namespace DMIEditor
             {
                 infiniteIndicator.Text = loopCountEditor.Value == 0 ? "(Infinite)" : "";
 
-                State.setLoop(loopCountEditor.Value.Value);
+                State.Loop = loopCountEditor.Value.Value;
             };
             p = new StackPanel()
             {
@@ -155,7 +159,7 @@ namespace DMIEditor
             };
             rewindBox.Click += (sender, args) =>
             {
-                State.setRewind(rewindBox.IsChecked.Value);
+                State.Rewind = rewindBox.IsChecked.Value;
             };
             p = new StackPanel()
             {
@@ -163,6 +167,9 @@ namespace DMIEditor
             };
             p.Children.Add(new TextBlock(){Text = "Rewind: "});
             p.Children.Add(rewindBox);
+            
+            //todo movement flag editor
+            
             stateValues.Children.Add(p);
         }
 
@@ -221,7 +228,7 @@ namespace DMIEditor
                 framePanel.Children.Add(title);
                 for (int f = 0; f < State.Frames; f++)
                 {
-                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, $"Frame {f+1}", State.Images[d, f]);
+                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, $"Frame {f+1}", State.GetImage(d, f));
                     framePanel.Children.Add(frameButton);
                 }
                 b.Child = scrollViewer;
@@ -229,7 +236,7 @@ namespace DMIEditor
             }
         }
 
-        private void SetImageIndex(int dir, int frame)
+        public void SetImageIndex(int dir, int frame)
         {
             if (ImageEditor?.DirIndex == dir && ImageEditor?.FrameIndex == frame) return;
             
@@ -242,7 +249,7 @@ namespace DMIEditor
             private readonly DmiEXImage _image;
             public readonly int DirIndex;
             public readonly int FrameIndex;
-            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, string labeltext, DmiEXImage image) : base (image.GetImage(), labeltext)
+            public ImageSelectionButton(StateEditor stateEditor, int dirIndex, int frameIndex, string labeltext, DmiEXImage image) : base (BitmapUtils.Bitmap2BitmapImage(image.GetBitmap()), labeltext)
             {
                 DirIndex = dirIndex;
                 FrameIndex = frameIndex;
@@ -261,7 +268,7 @@ namespace DMIEditor
             private void UpdatePressed(object sender = null, EventArgs e = null) => SetPressed(_stateEditor.ImageEditor.DirIndex == DirIndex && _stateEditor.ImageEditor.FrameIndex == FrameIndex);
 
             private void UpdateImage(object sender = null, EventArgs e = null)
-                => SetImage(_image.GetImage());
+                => SetImage(BitmapUtils.Bitmap2BitmapImage(_image.GetBitmap()));
         }
     }
 }

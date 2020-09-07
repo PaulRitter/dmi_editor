@@ -6,8 +6,8 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using DMI_Parser.Extended;
 using DMI_Parser.Utils;
-using DMIEditor.DmiEX;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
@@ -30,9 +30,19 @@ namespace DMIEditor
             get => _layerIndex;
             private set
             {
+                if (value == _layerIndex) return;
+                
+                //check if image with that index exists
+                Image.GetLayerByIndex(value);
+                
                 _layerIndex = value;
-                LayerIndexChanged?.Invoke(this, EventArgs.Empty);
+                OnLayerIndexChanged();
             }
+        }
+
+        private void OnLayerIndexChanged()
+        {
+            LayerIndexChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public DmiEXLayer SelectedLayer
@@ -61,11 +71,13 @@ namespace DMIEditor
         {
             InitializeComponent();
             
-            this.StateEditor = stateEditor;
-            this.DirIndex = dirIndex;
-            this.FrameIndex = frameIndex;
-            this.Image = stateEditor.State.Images[DirIndex,FrameIndex];
+            StateEditor = stateEditor;
+            DirIndex = dirIndex;
+            FrameIndex = frameIndex;
             
+            Image = stateEditor.State.GetImage(DirIndex, FrameIndex);
+            
+            //so we dont get blurry images
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetBitmapScalingMode(backgroundImg, BitmapScalingMode.NearestNeighbor);
             
@@ -76,10 +88,9 @@ namespace DMIEditor
             img.MouseEnter += OnMouseEnterOnImage;
 
             Image.LayerListChanged += UpdateLayerUi;
-            Image.LayerListChanged += UpdateImageDisplay;
             Image.ImageChanged += UpdateImageDisplay;
 
-            stateEditor.State.Parent.SizeChanged += CreateBackgroundImage;
+            stateEditor.FileEditor.DmiEx.SizeChanged += CreateBackgroundImage;
             
             CreateBackgroundImage();
             
@@ -142,24 +153,10 @@ namespace DMIEditor
             addLowBtn.Click += (sender, e) => Image.AddLayer(LowestIndex-1);
             LayerStackPanel.Children.Add(addLowBtn);
         }
-        
-        private void SelectLayer(int index)
-        {
-            try
-            {
-                Image.GetLayerByIndex(index);
-            }
-            catch (ArgumentException)
-            {
-                return;
-            }
 
-            LayerIndex = index;
-        }
-        
         private void UpdateImageDisplay(object sender = null, EventArgs e = null)
         {
-            img.Source = Image.GetImage();
+            img.Source = BitmapUtils.Bitmap2BitmapImage(Image.GetBitmap());
         }
         
         private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
@@ -193,7 +190,7 @@ namespace DMIEditor
             private readonly DmiEXLayer _layer;
             private TextBlock _visibleText = new TextBlock();
             private IntegerUpDown _layerIndexEditor;
-            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(layer.GetImage(), "")
+            public LayerButton(ImageEditor imageEditor, DmiEXLayer layer) : base(BitmapUtils.Bitmap2BitmapImage(layer.GetBitmap()), "")
             {
                 _imageEditor = imageEditor;
                 _layer = layer;
@@ -265,7 +262,13 @@ namespace DMIEditor
 
             private void Clicked(object sender, EventArgs e)
             {
-                _imageEditor.SelectLayer(_layer.Index);
+                try{
+                    _imageEditor.LayerIndex = _layer.Index;
+                }
+                catch (ArgumentException ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
             }
             
             private void UpdateVisibility(object sender, EventArgs e)
@@ -280,7 +283,7 @@ namespace DMIEditor
 
             private void UpdateImage(object sender, EventArgs e)
             {
-                SetImage(_layer.GetImage());
+                SetImage(BitmapUtils.Bitmap2BitmapImage(_layer.GetBitmap()));
             }
 
             private void ToggleVisibility(object sender, EventArgs e)
@@ -290,7 +293,13 @@ namespace DMIEditor
 
             private void DuplicateLayer(object sender, EventArgs e)
             {
-                _imageEditor.Image.AddLayer((DmiEXLayer)_layer.Clone());
+                try{
+                    _imageEditor.Image.AddLayer((DmiEXLayer)_layer.Clone());
+                }
+                catch (ArgumentException ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
             }
 
             private void DeleteLayer(object sender, EventArgs e)
@@ -325,8 +334,8 @@ namespace DMIEditor
 
             private class ExportLayerPrompt : PromptWindow
             {
-                private FileEditor _editor;
-                private DmiEXLayer _layer;
+                private readonly FileEditor _editor;
+                private readonly DmiEXLayer _layer;
                 public ExportLayerPrompt(DmiEXLayer layer, ImageEditor editor) : base("Enter an ID for the new State:", "Export Layer to State")
                 {
                     _layer = layer;
@@ -337,7 +346,7 @@ namespace DMIEditor
                 {
                     try
                     {
-                        _editor.DmiEx.addState(_layer.ToDmiExState(_editor.DmiEx, prompt));
+                        _editor.DmiEx.AddState(_layer.ToDmiExState(_editor.DmiEx, prompt));
                     }
                     catch (Exception e)
                     {

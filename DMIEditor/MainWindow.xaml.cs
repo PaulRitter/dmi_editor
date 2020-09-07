@@ -10,10 +10,10 @@ using DMIEditor.Tools;
 using System.Reflection;
 using Microsoft.Win32;
 using System.Windows.Input;
-using System.Runtime.InteropServices;
 using System.IO;
+using DMI_Parser.Extended;
 using Xceed.Wpf.Toolkit;
-using DMIEditor.DmiEX;
+using DMIEditor.Undo;
 
 namespace DMIEditor
 {
@@ -34,7 +34,7 @@ namespace DMIEditor
             if(Current != null) throw new Exception("Mainwindow already exists");
 
             Current = this;
-            
+
             InitializeComponent();
             
             Button createNewFileBtn = new Button {Content = "New"};
@@ -69,23 +69,20 @@ namespace DMIEditor
             toolBar.Items.Add(_colorPicker);
         }
 
-        public TabItem SelectedTab
+        private TabItem SelectedTab
         {
             get
             {
-                foreach (TabItem item in mainTabControl.Items)
-                {
-                    if (item.IsSelected)
-                    {
-                        return item;
-                    }
-                }
-
-                return null;
+                return mainTabControl.Items.Cast<TabItem>().FirstOrDefault(item => item.IsSelected);
             }
         }
 
-        public FileEditor SelectedEditor => (FileEditor)SelectedTab.Content;
+        public StateEditor GetStateEditor(DMIState state)
+        {
+            return (from TabItem tabItem in mainTabControl.Items select (FileEditor) tabItem.Content into f select f.GetStateEditor(state)).FirstOrDefault();
+        }
+
+        public FileEditor SelectedEditor => (FileEditor)SelectedTab?.Content;
 
         public Color GetColor()
         {
@@ -178,12 +175,12 @@ namespace DMIEditor
                 throw new WarningException($"File {filename} is already open");
             }
             
-            DmiEX.DmiEX dmiFile = DmiEX.DmiEX.FromDmi(path);
+            DmiEX dmiFile = DmiEX.FromDmi(path);
 
-            addEditor(dmiFile, path);
+            AddEditor(dmiFile, path);
         }
 
-        private void addEditor(DmiEX.DmiEX dmiEx, string path = "")
+        private void AddEditor(DmiEX dmiEx, string path = "")
         {
             string filename = path == "" ? "unsaved file" : path.Split(@"\").Last();            
             if ((from TabItem editorTab in mainTabControl.Items select (FileEditor) editorTab.Content).Any(fileEditor => fileEditor.Path == path))
@@ -205,9 +202,9 @@ namespace DMIEditor
 
         private void CreateNewFile(object sender, EventArgs e)
         {
-            DmiEX.DmiEX dmiEx = new DmiEX.DmiEX(1.0f, 32, 32);
+            DmiEX dmiEx = new DmiEX(1.0f, 32, 32);
             try{
-                addEditor(dmiEx, "");
+                AddEditor(dmiEx, "");
             }
             catch (Exception ex)
             {

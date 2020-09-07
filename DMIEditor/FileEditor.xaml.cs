@@ -3,7 +3,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using DMIEditor.DmiEX;
+using DMI_Parser;
+using DMI_Parser.Extended;
+using DMI_Parser.Utils;
 using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
@@ -13,16 +15,16 @@ namespace DMIEditor
     /// </summary>
     public partial class FileEditor : UserControl
     {
-        public readonly DmiEX.DmiEX DmiEx;
+        public readonly DmiEX DmiEx;
         public string Path { get; set; }
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
 
-        public FileEditor(DmiEX.DmiEX dmiEx, MainWindow main, string path)
+        public FileEditor(DmiEX dmiEx, MainWindow main, string path)
         {
-            this.DmiEx = dmiEx;
-            this.Main = main;
+            DmiEx = dmiEx;
+            Main = main;
             Path = path;
             InitializeComponent();
 
@@ -41,8 +43,7 @@ namespace DMIEditor
             widthEditor.ValueChanged += (sender, args) =>
             {
                 var width = widthEditor.Value;
-                if(width != null)
-                    dmiEx.setWidth(width.Value);
+                if(width != null) dmiEx.Width = width.Value;
             };
             var p = new StackPanel()
             {
@@ -62,7 +63,7 @@ namespace DMIEditor
             {
                 var height = widthEditor.Value;
                 if(height != null)
-                    dmiEx.setHeight(height.Value);
+                    dmiEx.Height = height.Value;
             };
             p = new StackPanel()
             {
@@ -79,7 +80,7 @@ namespace DMIEditor
                 try
                 {
                     var id = addStateInputfield.Text;
-                    dmiEx.createNewState(id);
+                    dmiEx.AddNewState(id);
                 }
                 catch (ArgumentException ex)
                 {
@@ -104,7 +105,7 @@ namespace DMIEditor
         private void CreateStateButtons(object sender = null, EventArgs e = null)
         {
             statePanel.Children.Clear();
-            for (int i = 0; i < DmiEx.States.Count; i++)
+            for (int i = 0; i < DmiEx.States.Length; i++)
             {
                 StateButton btn = new StateButton(this, i, (DmiEXState)DmiEx.States[i]);
                 statePanel.Children.Add(btn);
@@ -157,6 +158,11 @@ namespace DMIEditor
         {
             stateTabControl.Items.Remove(stateTab);
             UpdateStateUi();
+        }
+
+        public StateEditor GetStateEditor(DMIState state)
+        {
+            return (from StateEditorTabItem tabItem in stateTabControl.Items where tabItem.StateEditor.State == state select tabItem.StateEditor).FirstOrDefault();
         }
 
         // handles arrow keys for image selection
@@ -227,7 +233,7 @@ namespace DMIEditor
             private readonly FileEditor _fileEditor;
             public readonly int StateIndex;
             private readonly DmiEXState _state;
-            public StateButton(FileEditor fileEditor, int stateIndex, DmiEXState state) : base(state.getImage(0,0),$"\"{state.Id}\"")
+            public StateButton(FileEditor fileEditor, int stateIndex, DmiEXState state) : base(BitmapUtils.Bitmap2BitmapImage(state.GetImage(0,0).GetBitmap()),$"\"{state.Id}\"")
             {
                 StateIndex = stateIndex;
                 _state = state;
@@ -235,11 +241,11 @@ namespace DMIEditor
                 
                 //register click event
                 Click += Clicked;
-                state.idChanged += (sender, args) =>
+                state.IdChanged += (sender, args) =>
                 {
                     Label.Text = $"\"{state.Id}\"";
                 };
-                state.Images[0, 0].ImageChanged += ImageChanged;
+                state.GetImage(0, 0).ImageChanged += ImageChanged;
             }
 
             protected virtual void Clicked(object sender, EventArgs e)
@@ -249,7 +255,7 @@ namespace DMIEditor
 
             private void ImageChanged(object sender, EventArgs e)
             {
-                SetImage(_state.getImage(0,0));
+                SetImage(BitmapUtils.Bitmap2BitmapImage(_state.GetImage(0,0).GetBitmap()));
             }
         }
 
@@ -258,7 +264,7 @@ namespace DMIEditor
             public readonly StateEditor StateEditor;
             public StateEditorTabItem(StateEditor stateEditor)
             {
-                this.StateEditor = stateEditor;
+                StateEditor = stateEditor;
                 Content = stateEditor;
             }
         }

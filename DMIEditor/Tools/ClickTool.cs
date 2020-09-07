@@ -1,5 +1,5 @@
 ﻿using System.Drawing;
-using DMIEditor.DmiEX;
+using DMI_Parser.Extended;
 
 namespace DMIEditor.Tools
 {

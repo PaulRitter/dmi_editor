@@ -1,8 +1,5 @@
-﻿using System;
-using System.Drawing;
-using System.Threading;
-using System.Threading.Tasks;
-using DMIEditor.DmiEX;
+﻿using System.Drawing;
+using DMI_Parser.Extended;
 
 namespace DMIEditor.Tools
 {

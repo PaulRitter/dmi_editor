@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-using DMIEditor.DmiEX;
+﻿using System.Drawing;
+using DMI_Parser.Extended;
 
 namespace DMIEditor.Tools
 {
@@ -32,8 +29,8 @@ namespace DMIEditor.Tools
 
         protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetPixel(p);
 
-        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Width;
-        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Bitmap.Height;
+        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetBitmap().Width;
+        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetBitmap().Height;
         
         public override string ToString()
         {
