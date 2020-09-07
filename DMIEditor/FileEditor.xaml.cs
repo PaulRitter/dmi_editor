@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using DMI_Parser;
 using DMI_Parser.Extended;
 using DMI_Parser.Utils;
+using DMIEditor.Undo;
 using Xceed.Wpf.Toolkit;
 
 namespace DMIEditor
@@ -80,7 +81,9 @@ namespace DMIEditor
                 try
                 {
                     var id = addStateInputfield.Text;
-                    dmiEx.AddNewState(id);
+                    DmiEXState state = (DmiEXState)dmiEx.AddNewState(id);
+                    
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateNewUndoItem(dmiEx, state));
                 }
                 catch (ArgumentException ex)
                 {
