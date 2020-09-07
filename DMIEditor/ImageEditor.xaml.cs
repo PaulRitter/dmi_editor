@@ -338,6 +338,7 @@ namespace DMIEditor
             private void UpdateIndex(object sender, EventArgs e)
             {
                 if (_layerIndexEditor.Value == null) return;
+                MainWindow.Current.UndoManager.RegisterUndoItem(new LayerIndexChangeUndoItem(_layer));
                 _imageEditor.Image.SetLayerIndex(_layer, _layerIndexEditor.Value.Value);
             }
 
