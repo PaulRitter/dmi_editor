@@ -305,7 +305,9 @@ namespace DMIEditor
             private void DuplicateLayer(object sender, EventArgs e)
             {
                 try{
-                    _imageEditor.Image.AddLayer((DmiEXLayer)_layer.Clone());
+                    DmiEXLayer l = (DmiEXLayer)_layer.Clone();
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new LayerNewUndoItem(_imageEditor.Image, l));
+                    _imageEditor.Image.AddLayer(l);
                 }
                 catch (ArgumentException ex)
                 {
