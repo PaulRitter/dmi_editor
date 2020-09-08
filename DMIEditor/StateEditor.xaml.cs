@@ -71,6 +71,7 @@ namespace DMIEditor
                 
                 try
                 {
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateIdChangeUndoItem(State));
                     State.Id = idBox.Text;
                 }
                 catch (ArgumentException)
