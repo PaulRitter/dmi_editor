@@ -9,22 +9,16 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" x:Name="imageEditorGrid">
+        <Grid Grid.Column="0" x:Name="stateValues"></Grid>
+        <Border Grid.Column="1" x:Name="imageEditorGrid">
         </Border>
-        <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <Border Grid.Column="2" BorderBrush="Black" BorderThickness="0.2">
                 <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
                 </ScrollViewer>
-                <Grid Grid.Column="1" x:Name="stateValues">
-                </Grid>
-            </Grid>
         </Border>
     </Grid>
 </UserControl>
