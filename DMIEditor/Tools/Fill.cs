@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using DMI_Parser.Extended;
+using DMIEditor.Undo;
 
 namespace DMIEditor.Tools
 {
@@ -17,34 +19,57 @@ namespace DMIEditor.Tools
             if (oldColor == main.GetColor())
                 return;
 
-            processPixel(oldColor, p, new List<Point>());
+            FillPropagator fillPropagator = new FillPropagator(this);
+            fillPropagator.findPixels(oldColor, p);
+            List<PixelChangeItem> changeItems = new List<PixelChangeItem>();
+            foreach (var point in fillPropagator.Points)
+            {
+                changeItems.Add(new PixelChangeItem(point, getPixel(point)));
+            }
+            main.UndoManager.RegisterUndoItem(new PixelChangeUndoItem(Layer, changeItems));
+            Layer.SetPixels(fillPropagator.Points.ToArray(), main.GetColor());
         }
 
-        //checks and modifies current pixel and proceeds to check cardinal neighbours
-        //ignore list is shared to avoid loops
-        private void processPixel(Color oldColor, Point pixel, List<Point> alreadyProcessed)
+        
+
+        private class FillPropagator
         {
-            foreach (Point point in alreadyProcessed)
+            public readonly List<Point> Points = new List<Point>();
+            private List<Point> _alreadyProcessed = new List<Point>();
+            private Size _bounds;
+            private Bitmap _bitmap; //much better to just clone bitmap an make our requests here
+
+            public FillPropagator(Fill fillTool)
             {
-                if (point.Equals(pixel))
-                {
-                    return;
-                }
+                _bounds = new Size(fillTool.ImageWidth, fillTool.ImageHeight);
+                _bitmap = fillTool.Layer.GetBitmap();
             }
-            alreadyProcessed.Add(pixel);
-            if (pixel.X >= ImageWidth || pixel.X < 0)
-                return;
-            if (pixel.Y >= ImageHeight || pixel.Y < 0)
-                return;
 
-            if (oldColor.Equals(getPixel(pixel)))
+            //todo fix stackoverflow when pixels > 3637
+            //maybe this can be fixed by making this a loop?
+            public void findPixels(Color oldColor, Point pixel)
             {
-                setPixel(pixel, main.GetColor());
+                foreach (Point point in _alreadyProcessed)
+                {
+                    if (point.Equals(pixel))
+                    {
+                        return;
+                    }
+                }
+                _alreadyProcessed.Add(pixel);
+                if (pixel.X >= _bounds.Width || pixel.X < 0)
+                    return;
+                if (pixel.Y >= _bounds.Height || pixel.Y < 0)
+                    return;
 
-                processPixel(oldColor, new Point(pixel.X + 1, pixel.Y), alreadyProcessed);
-                processPixel(oldColor, new Point(pixel.X - 1, pixel.Y), alreadyProcessed);
-                processPixel(oldColor, new Point(pixel.X, pixel.Y + 1), alreadyProcessed);
-                processPixel(oldColor, new Point(pixel.X, pixel.Y - 1), alreadyProcessed);
+                if (!oldColor.Equals(_bitmap.GetPixel(pixel.X, pixel.Y))) return;
+            
+                Points.Add(pixel);
+
+                findPixels(oldColor, new Point(pixel.X + 1, pixel.Y));
+                findPixels(oldColor, new Point(pixel.X - 1, pixel.Y));
+                findPixels(oldColor, new Point(pixel.X, pixel.Y + 1));
+                findPixels(oldColor, new Point(pixel.X, pixel.Y - 1));
             }
         }
     }

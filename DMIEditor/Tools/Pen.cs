@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+﻿using System.Drawing;
 
 namespace DMIEditor.Tools
 {
-    public class Pen : DragTool
+    public class Pen : PixelDragTool
     {
         public override string Name => "Pen";
         public Pen(MainWindow main) : base(main) { }
 
-        protected override void PixelAct(Point p)
-        {
-            setPixel(p, main.GetColor());
-        }
+        protected override Color getColor() => main.GetColor();
     }
 }

@@ -20,17 +20,20 @@ namespace DMIEditor.Tools
         public abstract bool onSelected();
 
         public abstract void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed);
+        public abstract void onMouseExited(DmiEXImage dmiExImage, Point p);
         public abstract void onLeftMouseDown(DmiEXImage dmiExImage, Point p);
         public abstract void onLeftMouseUp(DmiEXImage dmiExImage, Point p);
         public abstract void onMouseMove(DmiEXImage dmiExImage, Point p);
 
         protected void setPixel(Point p, Color c)
-            => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.SetPixel(p, c);
+            => Layer.SetPixel(p, c);
 
-        protected Color getPixel(Point p) => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetPixel(p);
+        protected Color getPixel(Point p) => Layer.GetPixel(p);
 
-        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetBitmap().Width;
-        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.GetBitmap().Height;
+        protected DmiEXLayer Layer => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer;
+
+        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Width;
+        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Height;
         
         public override string ToString()
         {

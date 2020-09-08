@@ -5,14 +5,11 @@ using System.Text;
 
 namespace DMIEditor.Tools
 {
-    public class Eraser : DragTool
+    public class Eraser : PixelDragTool
     {
         public override string Name => "Eraser";
         public Eraser(MainWindow main) : base(main) { }
 
-        protected override void PixelAct(Point p)
-        {
-            setPixel(p, Color.Transparent);
-        }
+        protected override Color getColor() => Color.Transparent;
     }
 }

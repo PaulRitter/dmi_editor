@@ -11,6 +11,7 @@ namespace DMIEditor.Tools
 
         public override bool onSelected() => true;
         public override void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed){}
+        public override void onMouseExited(DmiEXImage dmiExImage, Point p){}
         public override void onLeftMouseUp(DmiEXImage dmiExImage, Point p){}
         public override void onMouseMove(DmiEXImage dmiExImage, Point p){}
 

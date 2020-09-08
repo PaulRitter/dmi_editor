@@ -55,7 +55,7 @@ namespace DMIEditor
             toolBar.Items.Add(saveAsFileBtn);
             saveAsFileBtn.Click += DMISaveAs;
 
-            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => t.BaseType?.BaseType == typeof(EditorTool) && !t.IsAbstract );
+            IEnumerable<Type> toolTypes = Assembly.GetAssembly(typeof(EditorTool)).GetTypes().Where<Type>(t => (t.BaseType?.BaseType == typeof(EditorTool) || t.BaseType?.BaseType?.BaseType == typeof(EditorTool)) && !t.IsAbstract );
             
             foreach (Type toolType in toolTypes)
             {
