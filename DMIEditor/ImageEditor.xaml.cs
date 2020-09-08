@@ -361,7 +361,9 @@ namespace DMIEditor
                 {
                     try
                     {
-                        _editor.DmiEx.AddState(_layer.ToDmiExState(_editor.DmiEx, prompt));
+                        DmiEXState state = _layer.ToDmiExState(_editor.DmiEx, prompt);
+                        MainWindow.Current.UndoManager.RegisterUndoItem(new StateNewUndoItem(_editor.DmiEx, state));
+                        _editor.DmiEx.AddState(state);
                     }
                     catch (Exception e)
                     {
