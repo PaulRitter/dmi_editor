@@ -22,9 +22,8 @@
                 <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
                 </ScrollViewer>
-                <ScrollViewer Grid.Column="1"  VerticalScrollBarVisibility="Auto">
-                    <StackPanel  x:Name="stateValues" Orientation="Vertical"/>
-                </ScrollViewer>
+                <Grid Grid.Column="1" x:Name="stateValues">
+                </Grid>
             </Grid>
         </Border>
     </Grid>

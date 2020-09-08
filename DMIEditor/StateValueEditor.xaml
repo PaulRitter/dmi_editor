@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="DMIEditor.StateValueEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:DMIEditor"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>ID:</TextBlock>
+                <TextBox x:Name="id_editor"></TextBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>DIRS:</TextBlock>
+                <ComboBox x:Name="dir_editor"></ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>FRAMES:</TextBlock>
+                <xctk:IntegerUpDown x:Name="frame_editor" Minimum="1" Increment="1"></xctk:IntegerUpDown>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>LOOP:</TextBlock>
+                <xctk:IntegerUpDown x:Name="loop_editor" Minimum="0" Increment="1"></xctk:IntegerUpDown>
+                <TextBlock x:Name="loop_infinite_indicator"></TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>REWIND:</TextBlock>
+                <CheckBox x:Name="rewind_editor"></CheckBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>MOVEMENT:</TextBlock>
+                <CheckBox x:Name="movement_editor"></CheckBox>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>
