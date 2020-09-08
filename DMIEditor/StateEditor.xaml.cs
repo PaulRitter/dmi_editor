@@ -166,6 +166,7 @@ namespace DMIEditor
             };
             rewindBox.Click += (sender, args) =>
             {
+                MainWindow.Current.UndoManager.RegisterUndoItem(new StateRewindChangeUndoItem(State));
                 State.Rewind = rewindBox.IsChecked.Value;
             };
             p = new StackPanel()
