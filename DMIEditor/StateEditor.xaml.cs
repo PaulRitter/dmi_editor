@@ -147,7 +147,7 @@ namespace DMIEditor
             loopCountEditor.ValueChanged += (sender, args) =>
             {
                 infiniteIndicator.Text = loopCountEditor.Value == 0 ? "(Infinite)" : "";
-
+                MainWindow.Current.UndoManager.RegisterUndoItem(new StateLoopChangeUndoItem(State));
                 State.Loop = loopCountEditor.Value.Value;
             };
             p = new StackPanel()
