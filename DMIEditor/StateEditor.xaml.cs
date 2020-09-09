@@ -44,9 +44,6 @@ namespace DMIEditor
             
             //setting default image
             SetImageIndex(0,0);
-
-            //create stateValue editUI
-            CreateStateValueEditor();
             
             //subscribe to state events
             State.ImageArrayChanged += OnImageArrayChanged;
@@ -59,11 +56,6 @@ namespace DMIEditor
         private void OnImageArrayChanged(object sender, EventArgs e)
         {
             CreateImageButtons();
-        }
-
-        private void CreateStateValueEditor()
-        {
-            stateValues.Children.Add(new StateValueEditor(State));
         }
 
         private void CreateImageButtons(object sender = null, EventArgs e = null)

@@ -35,71 +35,7 @@ namespace DMIEditor
             CreateStateButtons();
             
             // create dmi value editor
-            var widthEditor = new IntegerUpDown()
-            {
-                Minimum = 1,
-                Increment = 1,
-                Value = DmiEx.Width
-            };
-            widthEditor.ValueChanged += (sender, args) =>
-            {
-                var width = widthEditor.Value;
-                if(width != null) dmiEx.Width = width.Value;
-            };
-            var p = new StackPanel()
-            {
-                Orientation = Orientation.Horizontal
-            };
-            p.Children.Add(new TextBlock(){Text = "Width: "});
-            p.Children.Add(widthEditor);
-            dmiValues.Children.Add(p);
-            
-            var heightEditor = new IntegerUpDown()
-            {
-                Minimum = 1,
-                Increment = 1,
-                Value = DmiEx.Height
-            };
-            heightEditor.ValueChanged += (sender, args) =>
-            {
-                var height = widthEditor.Value;
-                if(height != null)
-                    dmiEx.Height = height.Value;
-            };
-            p = new StackPanel()
-            {
-                Orientation = Orientation.Horizontal
-            };
-            p.Children.Add(new TextBlock(){Text = "Height: "});
-            p.Children.Add(heightEditor);
-            dmiValues.Children.Add(p);
-
-            var addStateInputfield = new TextBox();
-            var addStateButton = new Button{ Content = "Add new state"};
-            addStateButton.Click += (s, e) =>
-            {
-                try
-                {
-                    var id = addStateInputfield.Text;
-                    DmiEXState state = (DmiEXState)dmiEx.AddNewState(id);
-                    
-                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateNewUndoItem(dmiEx, state));
-                }
-                catch (ArgumentException ex)
-                {
-                    ErrorPopupHelper.Create(ex);
-                }
-            };
-            p = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Children =
-                {
-                    addStateInputfield,
-                    addStateButton
-                }
-            };
-            dmiValues.Children.Add(p);
+            dmiValueEditorGrid.Children.Add(new FileValueEditor(DmiEx));
 
             //image selection hotkeys
             stateTabControl.SelectionChanged += UpdateStateUi;
@@ -229,6 +165,10 @@ namespace DMIEditor
                     button.SetPressed(false);
                 }
             }
+            
+            //setting the correct state value editor
+            if (currentTab != null)
+                stateValueEditorGrid.Children.Add(new StateValueEditor(currentTab.StateEditor.State));
         }
 
         private class StateButton : LabeledImageButton

@@ -11,8 +11,21 @@
             <RowDefinition Height="70*"/>
             <RowDefinition Height="30*"/>
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="0" x:Name="stateTabControl"/>
-        
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" x:Name="stateValueEditorGrid"></Grid>
+                <Grid Grid.Row="1" VerticalAlignment="Bottom" x:Name="dmiValueEditorGrid"></Grid>
+            </Grid>
+            <TabControl Grid.Column="1" x:Name="stateTabControl"/>
+        </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
