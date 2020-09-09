@@ -167,8 +167,9 @@ namespace DMIEditor
             }
             
             //setting the correct state value editor
-            if (currentTab != null)
-                stateValueEditorGrid.Children.Add(new StateValueEditor(currentTab.StateEditor.State));
+            if (currentTab == null) return;
+            stateValueEditorGrid.Children.Clear();
+            stateValueEditorGrid.Children.Add(new StateValueEditor(currentTab.StateEditor.State));
         }
 
         private class StateButton : LabeledImageButton
