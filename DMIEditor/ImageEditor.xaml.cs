@@ -55,7 +55,7 @@ namespace DMIEditor
                 {
                     return Image.GetLayers().First((l) => l.Index == LayerIndex);
                 }
-                catch (InvalidOperationException ex) //layerindex not valid anymore
+                catch (InvalidOperationException) //layerindex not valid anymore
                 {
                     LayerIndex = Image.GetLayers().First().Index;
                     return Image.GetLayers().First((l) => l.Index == LayerIndex);
