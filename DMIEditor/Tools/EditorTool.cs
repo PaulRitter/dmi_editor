@@ -17,13 +17,16 @@ namespace DMIEditor.Tools
         // returns true if selection should be locked in
         // false if previous tool should be kept
         // useful for button-press-only tools
-        public abstract bool onSelected();
+        public virtual bool ShouldBeKept => true;
+        public virtual void OnSelected(){}
+        public virtual void OnDeselected(){}
 
-        public abstract void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed);
-        public abstract void onMouseExited(DmiEXImage dmiExImage, Point p);
-        public abstract void onLeftMouseDown(DmiEXImage dmiExImage, Point p);
-        public abstract void onLeftMouseUp(DmiEXImage dmiExImage, Point p);
-        public abstract void onMouseMove(DmiEXImage dmiExImage, Point p);
+        public virtual void onMouseEnter(DmiEXImage dmiExImage, Point p, bool LeftMousePressed){}
+
+        public virtual void onMouseExited(DmiEXImage dmiExImage, Point p){}
+        public virtual void onLeftMouseDown(DmiEXImage dmiExImage, Point p){}
+        public virtual void onLeftMouseUp(DmiEXImage dmiExImage, Point p){}
+        public virtual void onMouseMove(DmiEXImage dmiExImage, Point p){}
 
         protected void setPixel(Point p, Color c)
             => Layer.SetPixel(p, c);

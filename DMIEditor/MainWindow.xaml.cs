@@ -23,11 +23,31 @@ namespace DMIEditor
 
     public partial class MainWindow : Window
     {
-        private EditorTool _selectedTool;
         public static MainWindow Current;
         private ColorPicker _colorPicker;
         public readonly UndoManager UndoManager;
+        
+        private EditorTool _selectedTool;
 
+        public EditorTool SelectedTool
+        {
+            get => _selectedTool;
+            set
+            {
+                if (value.ShouldBeKept)
+                {
+                    _selectedTool?.OnDeselected();
+                    _selectedTool = value;
+                    _selectedTool.OnSelected();
+                    ToolSelectionChanged?.Invoke(this, EventArgs.Empty);                    
+                }
+                else
+                {
+                    value.OnSelected();
+                }
+                
+            }
+        }
         public event EventHandler ToolSelectionChanged;
 
         public MainWindow()
@@ -107,11 +127,6 @@ namespace DMIEditor
         {
             System.Windows.Media.Color mc = System.Windows.Media.Color.FromArgb(c.A, c.R, c.G, c.B);
             _colorPicker.SelectedColor = mc;
-        }
-
-        public EditorTool GetTool()
-        {
-            return _selectedTool;
         }
 
         public void DMISave(object sender, EventArgs e)
@@ -241,8 +256,7 @@ namespace DMIEditor
             protected override void OnClick()
             {
                 base.OnClick();
-                Current._selectedTool = _tool;
-                Current.ToolSelectionChanged?.Invoke(this, EventArgs.Empty);
+                Current.SelectedTool = _tool;
             }
         }
 

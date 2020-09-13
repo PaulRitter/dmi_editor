@@ -6,9 +6,7 @@ namespace DMIEditor.Tools
     public abstract class DragTool :  EditorTool
     {
         protected DragTool(MainWindow main) : base(main) {}
-
-        public override bool onSelected() => true;
-
+        
         private bool _mouseHeld;
 
         //todo drawstop when image/layer gets changed
