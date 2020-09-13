@@ -87,6 +87,7 @@ namespace DMIEditor
             img.MouseLeftButtonUp += OnLeftMouseUpOnImage;
             img.MouseMove += OnMouseMoveOnImage;
             img.MouseEnter += OnMouseEnterOnImage;
+            img.MouseLeave += OnMouseExitedOnImage;
 
             Image.LayerListChanged += UpdateLayerUi;
             Image.ImageChanged += UpdateImageDisplay;
@@ -170,16 +171,19 @@ namespace DMIEditor
         }
         
         private void OnLeftMouseDownOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool()?.onLeftMouseDown(Image, BitmapPoint(e));
+            => MainWindow.Current.SelectedTool?.onLeftMouseDown(Image, BitmapPoint(e));
 
         private void OnMouseMoveOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool()?.onMouseMove(Image, BitmapPoint(e));
+            => MainWindow.Current.SelectedTool?.onMouseMove(Image, BitmapPoint(e));
 
         private void OnLeftMouseUpOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool()?.onLeftMouseUp(Image, BitmapPoint(e));
+            => MainWindow.Current.SelectedTool?.onLeftMouseUp(Image, BitmapPoint(e));
 
         private void OnMouseEnterOnImage(object sender, MouseEventArgs e)
-            => MainWindow.Current.GetTool()?.onMouseEnter(Image, BitmapPoint(e), e.LeftButton == MouseButtonState.Pressed);
+            => MainWindow.Current.SelectedTool?.onMouseEnter(Image, BitmapPoint(e), e.LeftButton == MouseButtonState.Pressed);
+        
+        private void OnMouseExitedOnImage(object sender, MouseEventArgs e)
+            => MainWindow.Current.SelectedTool?.onMouseExited(Image, BitmapPoint(e));
         
         // helpers to calculate from screen pixel pos -> bitmap pixel pos
         private Point BitmapPoint(MouseEventArgs e)
