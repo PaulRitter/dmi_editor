@@ -15,7 +15,8 @@
         </Border>
         <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0.2">
                 <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                    <StackPanel x:Name="dirPanel" Orientation="Horizontal"/>
+                    <Grid x:Name="frameSelectionGrid">
+                    </Grid>
                 </ScrollViewer>
         </Border>
     </Grid>

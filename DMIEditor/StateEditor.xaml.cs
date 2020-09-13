@@ -46,78 +46,74 @@ namespace DMIEditor
             SetImageIndex(0,0);
             
             //subscribe to state events
-            State.ImageArrayChanged += OnImageArrayChanged;
+            State.ImageArrayChanged += CreateImageButtons;
 
             CreateImageButtons();
             
             //TODO delays (maybe add into frame selection)
         }
 
-        private void OnImageArrayChanged(object sender, EventArgs e)
-        {
-            CreateImageButtons();
-        }
-
         private void CreateImageButtons(object sender = null, EventArgs e = null)
         {
-            //create dir and frame buttons
-            dirPanel.Children.Clear();
+            frameSelectionGrid.Children.Clear();
             
-            for (int d = 0; d < (int)State.Dirs; d++)
+            //set columns (dirs) and rows (frames)
+            frameSelectionGrid.RowDefinitions.Clear();
+            for (int i = 0; i < State.Frames + 1; i++) // + 1 for the header
             {
-                Border b = new Border
-                {
-                    BorderThickness = new Thickness(0.5d),
-                    BorderBrush = System.Windows.Media.Brushes.Black
-                };
-                ScrollViewer scrollViewer = new ScrollViewer {HorizontalScrollBarVisibility = ScrollBarVisibility.Auto};
-                StackPanel framePanel = new StackPanel();
-                scrollViewer.Content = framePanel;
-
-                string dirText;
-                switch (d)
-                {
-                    case 0:
-                        dirText = "SOUTH";
-                        break;
-                    case 1:
-                        dirText = "NORTH";
-                        break;
-                    case 2:
-                        dirText = "EAST";
-                        break;
-                    case 3:
-                        dirText = "WEST";
-                        break;
-                    case 4:
-                        dirText = "SOUTHEAST";
-                        break;
-                    case 5:
-                        dirText = "SOUTHWEST";
-                        break;
-                    case 6:
-                        dirText = "NORTHEAST";
-                        break;
-                    case 7:
-                        dirText = "NORTHWEST";
-                        break;
-                    default:
-                        dirText = "ERROR";
-                        break;
-                }
+                frameSelectionGrid.RowDefinitions.Add(new RowDefinition{ Height = GridLength.Auto });
+            }
+            
+            frameSelectionGrid.ColumnDefinitions.Clear();
+            for (int i = 0; i < (int)State.Dirs + 1; i++) // + 1 for delay-editor column
+            {
+                //set the column definition
+                frameSelectionGrid.ColumnDefinitions.Add(new ColumnDefinition{ Width = GridLength.Auto });
                 
-                TextBlock title = new TextBlock
+                if(i == 0) continue;
+
+                //create the column header
+                TextBlock header = new TextBlock
                 {
-                    Text = $"{dirText}", HorizontalAlignment = HorizontalAlignment.Center
+                    Text = i switch
+                    {
+                        0 => "SOUTH",
+                        1 => "NORTH",
+                        2 => "EAST",
+                        3 => "WEST",
+                        4 => "SOUTHEAST",
+                        5 => "SOUTHWEST",
+                        6 => "NORTHEAST",
+                        7 => "NORTHWEST",
+                        _ => "ERROR"
+                    },
+                    HorizontalAlignment = HorizontalAlignment.Center
                 };
-                framePanel.Children.Add(title);
-                for (int f = 0; f < State.Frames; f++)
+                frameSelectionGrid.Children.Add(header);
+                Grid.SetRow(header, 0);
+                Grid.SetColumn(header, i);
+            }
+            
+            //create delay editors
+            for (int i = 0; i < State.Frames; i++)
+            {
+                DelayEditorPanel editorPanel = new DelayEditorPanel(State, i);
+                
+                frameSelectionGrid.Children.Add(editorPanel);
+                Grid.SetRow(editorPanel, i+1);
+                Grid.SetColumn(editorPanel, 0);
+            }
+            
+            //populate grid
+            for (int dir = 0; dir < (int)State.Dirs; dir++)
+            {
+                for (int frame = 0; frame < State.Frames; frame++)
                 {
-                    ImageSelectionButton frameButton = new ImageSelectionButton(this, d, f, $"Frame {f+1}", State.GetImage(d, f));
-                    framePanel.Children.Add(frameButton);
+                    ImageSelectionButton frameButton = new ImageSelectionButton(this, dir, frame, "", State.GetImage(dir, frame));
+                    frameSelectionGrid.Children.Add(frameButton);
+                    Grid.SetRow(frameButton, frame+1);
+                    Grid.SetColumn(frameButton, dir+1);
                 }
-                b.Child = scrollViewer;
-                dirPanel.Children.Add(b);
             }
         }
 
@@ -154,6 +150,54 @@ namespace DMIEditor
 
             private void UpdateImage(object sender = null, EventArgs e = null)
                 => SetImage(BitmapUtils.Bitmap2BitmapImage(_image.GetBitmap()));
+        }
+
+        private class DelayEditorPanel : StackPanel
+        {
+            private DmiEXState _dmiExState;
+            private DoubleUpDown _delayEditor;
+            private int _frameIndex;
+            public DelayEditorPanel(DmiEXState dmiExState, int frameIndex)
+            {
+                _dmiExState = dmiExState;
+                _frameIndex = frameIndex;
+                Orientation = Orientation.Vertical;
+
+                Children.Add(new TextBlock
+                {
+                    Text = $"Frame {frameIndex + 1}",
+                    HorizontalAlignment = HorizontalAlignment.Center
+                });
+
+                if (dmiExState.Delays == null) return;
+                
+                _delayEditor = new DoubleUpDown
+                {
+                    Minimum = 0.01d,
+                    Increment = 0.1d,
+                    Value = dmiExState.Delays[frameIndex],
+                    Width = 50
+                };
+                _delayEditor.KeyDown += OnDelayEditorKeyDown;
+                dmiExState.DelayChanged += OnDelayChanged;
+                Children.Add(_delayEditor);
+            }
+
+            private void OnDelayEditorKeyDown(object sender, KeyEventArgs e)
+            {
+                if (e.Key != Key.Enter) return;
+
+                if (!_delayEditor.Value.HasValue) return;
+                
+                _dmiExState.SetDelay(_frameIndex, _delayEditor.Value.Value);
+            }
+
+            private void OnDelayChanged(object sender, DelayChangedEventArgs e)
+            {
+                if(e.ChangedIndex != _frameIndex) return;
+
+                _delayEditor.Value = _dmiExState.Delays[_frameIndex];
+            }
         }
     }
 }
