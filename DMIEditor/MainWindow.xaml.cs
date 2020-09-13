@@ -26,6 +26,21 @@ namespace DMIEditor
         public static MainWindow Current;
         private ColorPicker _colorPicker;
         public readonly UndoManager UndoManager;
+
+        private bool _viewHotspots = false;
+        public bool ViewHotspots
+        {
+            get => _viewHotspots;
+            set
+            {
+                if (value == _viewHotspots) return;
+
+                _viewHotspots = value;
+                ViewHotspotsFlagChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public event EventHandler ViewHotspotsFlagChanged; 
         
         private EditorTool _selectedTool;
 

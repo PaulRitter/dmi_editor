@@ -7,12 +7,22 @@ namespace DMIEditor.Tools
     {
         public override string Name => "Hotspot";
 
+        public override void OnSelected()
+        {
+            MainWindow.Current.ViewHotspots = true;
+        }
+
+        public override void OnDeselected()
+        {
+            MainWindow.Current.ViewHotspots = false;
+        }
+
         public override void PixelAct(Point p)
         {
-            //StateEditor editor = main.SelectedEditor.SelectedStateEditor;
-            //int dir = editor.DirIndex;
-            //int frame = editor.FrameIndex;
             //todo create hotspot
+            Hotspot hotspot = State.AddHotspot(p.X, p.Y, ImageEditor.FrameIndex, ImageEditor.DirIndex);
+            
+            
         }
     }
 }

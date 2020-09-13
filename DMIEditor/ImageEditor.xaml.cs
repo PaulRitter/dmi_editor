@@ -119,7 +119,7 @@ namespace DMIEditor
             
             backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(backgroundMap);
         }
-        
+
         private void UpdateLayerUi(object sender, EventArgs e)
         {
             _layerButtons.Clear();

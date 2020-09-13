@@ -27,10 +27,13 @@ namespace DMIEditor.Tools
 
         protected Color getPixel(Point p) => Layer.GetPixel(p);
 
-        protected DmiEXLayer Layer => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer;
+        protected DmiEXState State => MainWindow.Current.SelectedEditor.SelectedStateEditor.State;
+        protected ImageEditor ImageEditor => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor;
+        
+        protected DmiEXLayer Layer => ImageEditor.SelectedLayer;
 
-        protected int ImageWidth => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Width;
-        protected int ImageHeight => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Height;
+        protected int ImageWidth => ImageEditor.SelectedLayer.Width;
+        protected int ImageHeight => ImageEditor.SelectedLayer.Height;
         
         public override string ToString()
         {
