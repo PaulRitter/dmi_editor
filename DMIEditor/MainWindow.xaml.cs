@@ -79,7 +79,7 @@ namespace DMIEditor
             
             foreach (Type toolType in toolTypes)
             {
-                EditorTool tool = (EditorTool)Activator.CreateInstance(toolType, this);
+                EditorTool tool = (EditorTool)Activator.CreateInstance(toolType);
                 ToolButton btn = new ToolButton(tool);
                 toolBar.Items.Add(btn);
             }

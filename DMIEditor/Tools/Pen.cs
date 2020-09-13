@@ -5,8 +5,7 @@ namespace DMIEditor.Tools
     public class Pen : PixelDragTool
     {
         public override string Name => "Pen";
-        public Pen(MainWindow main) : base(main) { }
 
-        protected override Color getColor() => main.GetColor();
+        protected override Color getColor() => MainWindow.Current.GetColor();
     }
 }

@@ -5,10 +5,6 @@ namespace DMIEditor.Tools
 {
     public class HotspotTool : ClickTool
     {
-        public HotspotTool(MainWindow main) : base(main)
-        {
-        }
-
         public override string Name => "Hotspot";
 
         public override void PixelAct(Point p)

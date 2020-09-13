@@ -11,13 +11,12 @@ namespace DMIEditor.Tools
     public class Fill : ClickTool
     {
         public override string Name => "Fill";
-        public Fill(MainWindow main) : base(main) { }
-
+        
         public override void PixelAct(Point p)
         {
             Color oldColor = getPixel(p);
 
-            if (oldColor == main.GetColor())
+            if (oldColor == MainWindow.Current.GetColor())
                 return;
 
             FillPropagator fillPropagator = new FillPropagator(this);
@@ -27,8 +26,8 @@ namespace DMIEditor.Tools
             {
                 changeItems.Add(new PixelChangeItem(point, getPixel(point)));
             }
-            main.UndoManager.RegisterUndoItem(new PixelChangeUndoItem(Layer, changeItems));
-            Layer.SetPixels(points.ToArray(), main.GetColor());
+            MainWindow.Current.UndoManager.RegisterUndoItem(new PixelChangeUndoItem(Layer, changeItems));
+            Layer.SetPixels(points.ToArray(), MainWindow.Current.GetColor());
         }
 
         

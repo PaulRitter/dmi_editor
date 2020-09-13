@@ -8,12 +8,10 @@ namespace DMIEditor.Tools
     public class Pipette : ClickTool
     {
         public override string Name => "Pipette";
-        public Pipette(MainWindow main) : base(main) { }
-
         public override void PixelAct(Point p)
         {
             Color c = getPixel(p);
-            if(c != Color.Transparent) main.SetColor(c);
+            if(c != Color.Transparent) MainWindow.Current.SetColor(c);
         }
     }
 }

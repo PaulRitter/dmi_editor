@@ -7,8 +7,6 @@ namespace DMIEditor.Tools
 {
     public abstract class DragTool :  EditorTool
     {
-        protected DragTool(MainWindow main) : base(main) {}
-        
         private bool _mouseHeld;
 
         //todo drawstop when image/layer gets changed

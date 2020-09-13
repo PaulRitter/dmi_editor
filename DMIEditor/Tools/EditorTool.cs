@@ -7,13 +7,7 @@ namespace DMIEditor.Tools
     {
         public abstract string Name { get; }
         //public readonly XYZ icon;
-        internal MainWindow main; //todo remove this since we got MainWindow.current
-
-        public EditorTool(MainWindow main)
-        {
-            this.main = main;
-        }
-
+        
         // returns true if selection should be locked in
         // false if previous tool should be kept
         // useful for button-press-only tools
@@ -33,10 +27,10 @@ namespace DMIEditor.Tools
 
         protected Color getPixel(Point p) => Layer.GetPixel(p);
 
-        protected DmiEXLayer Layer => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer;
+        protected DmiEXLayer Layer => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer;
 
-        protected int ImageWidth => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Width;
-        protected int ImageHeight => main.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Height;
+        protected int ImageWidth => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Width;
+        protected int ImageHeight => MainWindow.Current.SelectedEditor.SelectedStateEditor.ImageEditor.SelectedLayer.Height;
         
         public override string ToString()
         {
