@@ -27,7 +27,7 @@ namespace DMIEditor.Undo
 
             public UndoItemQueue(int size)
             {
-                _undoItems = new UndoItem[size];                
+                _undoItems = new UndoItem[size];
             }
 
             public void AddItem(UndoItem item)
