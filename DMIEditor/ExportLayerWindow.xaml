@@ -1,0 +1,30 @@
+﻿<Window x:Class="DMIEditor.ExportLayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:DMIEditor"
+        mc:Ignorable="d"
+        Title="Export Layer to State"
+        SizeToContent="WidthAndHeight">
+    <Grid Width="Auto" Height="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Grid.Column="0">Target DMI:</TextBlock>
+        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="dmi_selector"></ComboBox>
+        
+        <TextBlock Grid.Row="1" Grid.Column="0">ID:</TextBlock>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="id_editor"/>
+        
+        
+        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Content="Export Layer" Click="OnButtonClicked"/>
+    </Grid>
+</Window>

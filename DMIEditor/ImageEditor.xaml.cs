@@ -422,33 +422,7 @@ namespace DMIEditor
 
             private void ExportLayer(object sender, EventArgs e)
             {
-                new ExportLayerPrompt(_layer, _imageEditor).Show();
-            }
-
-            private class ExportLayerPrompt : PromptWindow
-            {
-                private readonly FileEditor _editor;
-                private readonly DmiEXLayer _layer;
-                public ExportLayerPrompt(DmiEXLayer layer, ImageEditor editor) : base("Enter an ID for the new State:", "Export Layer to State")
-                {
-                    _layer = layer;
-                    _editor = editor.StateEditor.FileEditor;
-                }
-
-                protected override void promptSent(string prompt)
-                {
-                    try
-                    {
-                        DmiEXState state = _layer.ToDmiExState(_editor.DmiEx, prompt);
-                        MainWindow.Current.UndoManager.RegisterUndoItem(new StateNewUndoItem(_editor.DmiEx, state));
-                        _editor.DmiEx.AddState(state);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                    
-                }
+                new ExportLayerWindow(_layer).Show();
             }
         }
     }
