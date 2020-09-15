@@ -72,10 +72,12 @@ namespace DMIEditor
                 
                 if(i == 0) continue;
 
+                var actual_index = i - 1;
                 //create the column header
+                StackPanel p = new StackPanel{Orientation = Orientation.Horizontal};
                 TextBlock header = new TextBlock
                 {
-                    Text = i switch
+                    Text = actual_index switch
                     {
                         0 => "SOUTH",
                         1 => "NORTH",
@@ -89,9 +91,18 @@ namespace DMIEditor
                     },
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                frameSelectionGrid.Children.Add(header);
-                Grid.SetRow(header, 0);
-                Grid.SetColumn(header, i);
+                p.Children.Add(header);
+                
+                Button previewBtn = new Button{ Content = "Preview" };
+                previewBtn.Click += (o, e) =>
+                {
+                    AnimationPreviewWindow w = new AnimationPreviewWindow(State, actual_index);
+                    w.Show();
+                };
+                p.Children.Add(previewBtn);
+                frameSelectionGrid.Children.Add(p);
+                Grid.SetRow(p, 0);
+                Grid.SetColumn(p, i);
             }
             
             //create delay editors
