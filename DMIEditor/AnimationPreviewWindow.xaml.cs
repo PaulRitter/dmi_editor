@@ -20,9 +20,6 @@ namespace DMIEditor
         public AnimationPreviewWindow(DmiEXState state, int dirIndex = 0)
         {
             InitializeComponent();
-
-            Width = 200d;
-            Height = 250d;
             
             _state = state;
             _dirIndex = dirIndex;

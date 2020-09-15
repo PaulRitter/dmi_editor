@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:DMIEditor"
         mc:Ignorable="d"
-        Title="AnimationPreviewWindow" Height="450" Width="800">
+        Title="Animation Preview" Height="250" Width="200">
     <StackPanel Orientation="Vertical">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <TextBlock VerticalAlignment="Center" Margin="0,0,10,0">Direction:</TextBlock>
