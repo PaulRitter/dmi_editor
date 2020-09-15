@@ -16,6 +16,7 @@
                 <Grid>
                     <Image x:Name="backgroundImg" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <Image x:Name="img" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Image x:Name="hotspotImg" IsHitTestVisible="False"/>
                 </Grid>
             </Border>
         </Viewbox>

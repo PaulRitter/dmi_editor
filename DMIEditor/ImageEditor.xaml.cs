@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using DMI_Parser;
 using DMI_Parser.Extended;
 using DMI_Parser.Utils;
 using DMIEditor.Undo;
 using Xceed.Wpf.Toolkit;
 using Color = System.Drawing.Color;
+using Image = System.Windows.Controls.Image;
 using Point = System.Drawing.Point;
+using Size = System.Windows.Size;
 
 
 namespace DMIEditor
@@ -79,6 +84,7 @@ namespace DMIEditor
             Image = stateEditor.State.GetImage(DirIndex, FrameIndex);
             
             //so we dont get blurry images
+            RenderOptions.SetBitmapScalingMode(hotspotImg, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetBitmapScalingMode(backgroundImg, BitmapScalingMode.NearestNeighbor);
             
@@ -93,12 +99,16 @@ namespace DMIEditor
             Image.ImageChanged += UpdateImageDisplay;
 
             stateEditor.FileEditor.DmiEx.SizeChanged += CreateBackgroundImage;
+            stateEditor.State.HotspotListChanged += UpdateHotspotImage;
+            MainWindow.Current.ToolSelectionChanged += UpdateHotspotImage;
             
             CreateBackgroundImage();
             
             CreateLayerUi();
             
             UpdateImageDisplay();
+
+            UpdateHotspotImage();
         }
 
         private void CreateBackgroundImage(object sender = null, EventArgs e = null)
@@ -120,6 +130,63 @@ namespace DMIEditor
             backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(backgroundMap);
         }
 
+        private void UpdateHotspotImage(object sender = null, EventArgs e = null)
+        {
+            if(MainWindow.Current.ViewHotspots)
+                CreateHotspotImage();
+            else
+                ClearHotspotImage();
+        }
+
+        private void CreateHotspotImage()
+        {
+            //im too stupid to retrieve a file/resource so im just gonna draw it programmatically
+            Bitmap bm = new Bitmap(7,7);
+            bm.SetPixel(+0,3, Color.Black);
+            bm.SetPixel(0,2, Color.LightGray);
+            bm.SetPixel(1,3, Color.Black);
+            bm.SetPixel(1,2, Color.LightGray);
+            bm.SetPixel(2,3, Color.Black);
+            bm.SetPixel(2,2, Color.LightGray);
+            bm.SetPixel(3,3, Color.Black);
+            bm.SetPixel(4,3, Color.Black);
+            bm.SetPixel(4,2, Color.LightGray);
+            bm.SetPixel(5,3, Color.Black);
+            bm.SetPixel(5,2, Color.LightGray);
+            bm.SetPixel(6,3, Color.Black);
+            bm.SetPixel(6,2, Color.LightGray);
+            
+            bm.SetPixel(3,0, Color.Black);
+            bm.SetPixel(2,0, Color.LightGray);
+            bm.SetPixel(3,1, Color.Black);
+            bm.SetPixel(2,1, Color.LightGray);
+            bm.SetPixel(3,2, Color.Black);
+            bm.SetPixel(3,4, Color.Black);
+            bm.SetPixel(2,4, Color.LightGray);
+            bm.SetPixel(3,5, Color.Black);
+            bm.SetPixel(2,5, Color.LightGray);
+            bm.SetPixel(3,6, Color.Black);
+            bm.SetPixel(2,6, Color.LightGray);
+
+            Bitmap main = new Bitmap(Image.Width*7,Image.Height*7);
+            Hotspot hotspot = StateEditor.State.GetHotspot(FrameIndex, DirIndex);
+            if (hotspot == null) return;
+            
+            int off_x = hotspot.X * 7;
+            int off_y = hotspot.Y * 7;
+            using (Graphics g = Graphics.FromImage(main))
+            {
+                g.DrawImage(bm, off_x, off_y);
+            }
+
+            hotspotImg.Source = BitmapUtils.Bitmap2BitmapImage(main);
+        }
+        
+        private void ClearHotspotImage()
+        {
+            hotspotImg.Source = null;
+        }
+        
         private void UpdateLayerUi(object sender, EventArgs e)
         {
             _layerButtons.Clear();
