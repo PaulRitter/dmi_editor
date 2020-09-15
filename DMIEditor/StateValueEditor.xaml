@@ -27,9 +27,9 @@
             <TextBlock Grid.Column="0" Grid.Row="5">MOVEMENT:</TextBlock>
             <TextBox x:Name="id_editor" Grid.Column="1" Grid.Row="0"></TextBox>
             <ComboBox x:Name="dir_editor" Grid.Column="1" Grid.Row="1"></ComboBox>
-            <xctk:IntegerUpDown x:Name="frame_editor" Minimum="1" Increment="1" Grid.Column="1" Grid.Row="2"></xctk:IntegerUpDown>
+            <xctk:IntegerUpDown x:Name="frame_editor" Minimum="1" Increment="1" Grid.Column="1" Grid.Row="2" AllowSpin="False" ShowButtonSpinner="False"></xctk:IntegerUpDown>
             <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="3">
-                <xctk:IntegerUpDown x:Name="loop_editor" Minimum="0" Increment="1"></xctk:IntegerUpDown>
+                <xctk:IntegerUpDown x:Name="loop_editor" Minimum="0" Increment="1" AllowSpin="False" ShowButtonSpinner="False"></xctk:IntegerUpDown>
                 <TextBlock x:Name="loop_infinite_indicator"></TextBlock>
             </StackPanel>
             <CheckBox x:Name="rewind_editor" Grid.Column="1" Grid.Row="4"></CheckBox>

@@ -300,7 +300,9 @@ namespace DMIEditor
                 _layerIndexEditor = new IntegerUpDown()
                 {
                     Increment = 1,
-                    Value = _layer.Index
+                    Value = _layer.Index,
+                    AllowSpin = false,
+                    ShowButtonSpinner = false
                 };
                 _layerIndexEditor.KeyDown += UpdateIndex;
                 _layerIndexEditor.LostFocus += UpdateEditor;

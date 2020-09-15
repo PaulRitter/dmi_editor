@@ -176,7 +176,9 @@ namespace DMIEditor
                     Minimum = 0.01d,
                     Increment = 0.1d,
                     Value = dmiExState.Delays[frameIndex],
-                    Width = 50
+                    Width = 50,
+                    AllowSpin = false,
+                    ShowButtonSpinner = false
                 };
                 _delayEditor.KeyDown += OnDelayEditorKeyDown;
                 _delayEditor.LostFocus += (o, e) =>
@@ -185,6 +187,18 @@ namespace DMIEditor
                 };
                 dmiExState.DelayChanged += OnDelayChanged;
                 Children.Add(_delayEditor);
+
+                TextBlock secondsIndicator = new TextBlock
+                {
+                    Text = $"=> {(dmiExState.Delays[frameIndex]*0.1):0.##}s"
+                };
+                _delayEditor.ValueChanged += (o, e) =>
+                {
+                    if (!_delayEditor.Value.HasValue) return;
+                    
+                    secondsIndicator.Text = $"=> {(_delayEditor.Value.Value * 0.1):0.##}s";
+                };
+                Children.Add(secondsIndicator);
             }
 
             private void OnDelayEditorKeyDown(object sender, KeyEventArgs e)
