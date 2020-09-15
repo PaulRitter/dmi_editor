@@ -179,6 +179,7 @@ namespace DMIEditor
                     Width = 50
                 };
                 _delayEditor.KeyDown += OnDelayEditorKeyDown;
+                //todo _delayEditor.LostFocus
                 dmiExState.DelayChanged += OnDelayChanged;
                 Children.Add(_delayEditor);
             }
@@ -189,6 +190,7 @@ namespace DMIEditor
 
                 if (!_delayEditor.Value.HasValue) return;
                 
+                MainWindow.Current.UndoManager.RegisterUndoItem(new StateDelayChangeUndoItem(_dmiExState, _frameIndex));
                 _dmiExState.SetDelay(_frameIndex, _delayEditor.Value.Value);
             }
 

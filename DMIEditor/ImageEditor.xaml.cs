@@ -170,7 +170,11 @@ namespace DMIEditor
 
             Bitmap main = new Bitmap(Image.Width*7,Image.Height*7);
             Hotspot hotspot = StateEditor.State.GetHotspot(FrameIndex, DirIndex);
-            if (hotspot == null) return;
+            if (hotspot == null)
+            {
+                ClearHotspotImage();
+                return;
+            }
             
             int off_x = hotspot.X * 7;
             int off_y = hotspot.Y * 7;

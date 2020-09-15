@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using DMI_Parser;
+using DMIEditor.Undo;
 
 namespace DMIEditor.Tools
 {
@@ -19,10 +20,8 @@ namespace DMIEditor.Tools
 
         public override void PixelAct(Point p)
         {
-            //todo create hotspot
             Hotspot hotspot = State.AddHotspot(p.X, p.Y, ImageEditor.FrameIndex, ImageEditor.DirIndex);
-            
-            
+            MainWindow.Current.UndoManager.RegisterUndoItem(new StateHotspotAddUndoItem(State, hotspot));
         }
     }
 }
