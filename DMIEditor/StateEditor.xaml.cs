@@ -179,7 +179,10 @@ namespace DMIEditor
                     Width = 50
                 };
                 _delayEditor.KeyDown += OnDelayEditorKeyDown;
-                //todo _delayEditor.LostFocus
+                _delayEditor.LostFocus += (o, e) =>
+                {
+                    _delayEditor.Value = _dmiExState.Delays[_frameIndex];
+                };
                 dmiExState.DelayChanged += OnDelayChanged;
                 Children.Add(_delayEditor);
             }

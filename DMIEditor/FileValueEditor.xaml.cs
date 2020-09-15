@@ -17,10 +17,12 @@ namespace DMIEditor
 
             width_editor.Value = dmiEx.Width;
             width_editor.KeyDown += ChangeSize;
+            width_editor.LostFocus += WidthChanged;
             dmiEx.WidthChanged += WidthChanged;
 
             height_editor.Value = dmiEx.Height;
             height_editor.KeyDown += ChangeSize;
+            height_editor.LostFocus += HeightChanged;
             dmiEx.HeightChanged += HeightChanged;
 
             new_state_editor.KeyDown += NewState;

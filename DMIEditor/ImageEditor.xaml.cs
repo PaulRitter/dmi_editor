@@ -302,7 +302,8 @@ namespace DMIEditor
                     Increment = 1,
                     Value = _layer.Index
                 };
-                _layerIndexEditor.ValueChanged += UpdateIndex;
+                _layerIndexEditor.KeyDown += UpdateIndex;
+                _layerIndexEditor.LostFocus += UpdateEditor;
                 var p = new StackPanel()
                 {
                     Orientation = Orientation.Horizontal
@@ -405,14 +406,14 @@ namespace DMIEditor
             
             private void UpdateEditor(object sender, EventArgs e)
             {
-                _layerIndexEditor.ValueChanged -= UpdateIndex;
                 _layerIndexEditor.Value = _layer.Index;
-                _layerIndexEditor.ValueChanged += UpdateIndex;
             }
 
-            private void UpdateIndex(object sender, EventArgs e)
+            private void UpdateIndex(object sender, KeyEventArgs e)
             {
+                if (e.Key != Key.Enter) return;
                 if (_layerIndexEditor.Value == null) return;
+                
                 MainWindow.Current.UndoManager.RegisterUndoItem(new LayerIndexChangeUndoItem(_layer));
                 _imageEditor.Image.SetLayerIndex(_layer, _layerIndexEditor.Value.Value);
             }

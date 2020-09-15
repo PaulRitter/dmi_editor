@@ -19,6 +19,7 @@ namespace DMIEditor
             //stateID
             id_editor.Text = state.Id;
             id_editor.KeyDown += ChangeID;
+            id_editor.LostFocus += IDChanged;
             state.IdChanged += IDChanged;
 
             //dir count
@@ -32,14 +33,15 @@ namespace DMIEditor
 
             //frame count
             frame_editor.Value = state.Frames;
-            frame_editor.ValueChanged += ChangeFrames;
+            frame_editor.KeyDown += ChangeFrames;
+            frame_editor.LostFocus += FramesChanged;
             state.FrameCountChanged += FramesChanged;
 
             //loop
             loop_editor.Value = state.Loop;
-            loop_editor.ValueChanged += ChangeLoop;
+            loop_editor.KeyDown += ChangeLoop;
+            loop_editor.LostFocus += LoopChanged;
             state.LoopCountChanged += LoopChanged;
-            
             loop_infinite_indicator.Text = state.Loop == 0 ? "(Infinite)" : "";
 
             //rewind
@@ -88,25 +90,23 @@ namespace DMIEditor
             dir_editor.SelectionChanged += ChangeDirs;
         }
         
-        private void ChangeFrames(object sender, EventArgs e)
+        private void ChangeFrames(object sender, KeyEventArgs e)
         {
-            var frames = frame_editor.Value;
-            if (frames != null)
-            {
-                MainWindow.Current.UndoManager.RegisterUndoItem(new StateImageArraySizeChangeUndoItem(State));
-                State.Frames = frames.Value;
-            }
+            if (e.Key != Key.Enter) return;
+            if (!frame_editor.Value.HasValue) return;
+            
+            MainWindow.Current.UndoManager.RegisterUndoItem(new StateImageArraySizeChangeUndoItem(State));
+            State.Frames = frame_editor.Value.Value;
         }
 
         private void FramesChanged(object sender, EventArgs e)
         {
-            frame_editor.ValueChanged -= ChangeFrames;
             frame_editor.Value = State.Frames;
-            frame_editor.ValueChanged += ChangeFrames;
         }
         
-        private void ChangeLoop(object sender, EventArgs e)
+        private void ChangeLoop(object sender, KeyEventArgs e)
         {
+            if (e.Key != Key.Enter) return;
             if (!loop_editor.Value.HasValue) return;
             
             MainWindow.Current.UndoManager.RegisterUndoItem(new StateLoopChangeUndoItem(State));
@@ -117,9 +117,7 @@ namespace DMIEditor
         {
             loop_infinite_indicator.Text = State.Loop == 0 ? "(Infinite)" : "";
             
-            loop_editor.ValueChanged -= ChangeLoop;
             loop_editor.Value = State.Loop;
-            loop_editor.ValueChanged += ChangeLoop;
         }
         
         private void ChangeRewind(object sender, EventArgs e)
