@@ -74,6 +74,10 @@ namespace DMIEditor
             {
                 Text = $"\"{state.Id}\"", VerticalAlignment = VerticalAlignment.Center
             };
+            state.IdChanged += (o, e) =>
+            {
+                txt.Text = $"\"{state.Id}\"";
+            };
             sp.Orientation = Orientation.Horizontal;
             sp.Children.Add(txt);
 
