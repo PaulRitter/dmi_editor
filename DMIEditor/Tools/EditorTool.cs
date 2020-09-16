@@ -23,7 +23,9 @@ namespace DMIEditor.Tools
         public virtual void onMouseMove(DmiEXImage dmiExImage, Point p){}
 
         protected void setPixel(Point p, Color c)
-            => Layer.SetPixel(p, c);
+            => setPixels(new []{p}, c);
+
+        protected void setPixels(Point[] items, Color c) => Layer.SetPixels(items, c);
 
         protected Color getPixel(Point p) => Layer.GetPixel(p);
 

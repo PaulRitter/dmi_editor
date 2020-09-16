@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using DMI_Parser.Extended;
@@ -19,14 +20,16 @@ namespace DMIEditor.Tools
             OnDrawStart(dmiExImage, p);
         }
 
-        private Point lastPoint;
+        protected Point lastPoint = new Point(-1,-1);
         private void drawMove(DmiEXImage dmiExImage, Point p)
         {
             if (!_mouseHeld) return;
             if (p.Equals(lastPoint)) return;
-
-            lastPoint = p;
+            if (lastPoint.X == -1 && lastPoint.Y == -1) lastPoint = p;
+            
             OnDrawMove(dmiExImage, p);
+            lastPoint = p;
+            recentExit = false;
         }
         
         private void drawStop(DmiEXImage dmiExImage, Point p)
@@ -53,10 +56,13 @@ namespace DMIEditor.Tools
                 drawStart(dmiExImage, p);
         }
 
+        protected bool recentExit;
         private CancellationTokenSource _cancellationToken;
         public override void onMouseExited(DmiEXImage dmiExImage, Point p)
         {
             if (!_mouseHeld) return;
+
+            recentExit = true;
             
             _cancellationToken?.Cancel();
             _cancellationToken = new CancellationTokenSource();
