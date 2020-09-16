@@ -348,9 +348,9 @@ namespace DMIEditor
                 UpdatePressState();
             }
 
-            private void Clicked(object sender, EventArgs e)
+            private void Clicked(object sender, RoutedEventArgs e)
             {
-                
+                if(e.Source != this) return;
                 try{
                     _imageEditor.LayerIndex = _layer.Index;
                 }
