@@ -4,4 +4,4 @@ A lightweight editor utilizing the [dmi parser](https://github.com/PaulRitter/dm
 [Trello](https://trello.com/b/xIOuvcZ8/dmi-editor)
 
 ## How it looks
-![preview](https://cdn.discordapp.com/attachments/594515293292724249/751151516223799357/unknown.png)
+![preview](https://media.discordapp.net/attachments/239836068491296788/756425570518040576/unknown.png)
