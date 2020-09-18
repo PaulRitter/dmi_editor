@@ -36,10 +36,10 @@ namespace DMIEditor.Tools
             pixels.RemoveAll(point => point.X < 0 || point.Y < 0);
             pixels.RemoveAll(point => point.X >= Layer.Width || point.Y >= Layer.Height);
             pixels.RemoveAll(point => getColor() == getPixel(point));
-
+            
             foreach (var pixel in pixels)
             {
-                _changeBuffer.Add(new PixelChangeItem(pixel, getPixel(p)));
+                _changeBuffer.Add(new PixelChangeItem(pixel, getPixel(pixel)));
             }
             setPixels(pixels.ToArray(), getColor());
         }
@@ -69,6 +69,13 @@ namespace DMIEditor.Tools
                 if(!points.Contains(current)) points.Add(current);
             }
             return points;
+        }
+        
+        
+        protected override void OnDrawStop(DmiEXImage dmiExImage, Point p)
+        {
+            MainWindow.Current.UndoManager.RegisterUndoItem(new PixelChangeUndoItem(Layer, _changeBuffer));
+            _changeBuffer = null;
         }
 
         private struct FloatingPoint //haha, get it?
@@ -105,10 +112,5 @@ namespace DMIEditor.Tools
             public Point Floored() => new Point((int)Math.Floor(X), (int)Math.Floor(Y));
         }
 
-        protected override void OnDrawStop(DmiEXImage dmiExImage, Point p)
-        {
-            MainWindow.Current.UndoManager.RegisterUndoItem(new PixelChangeUndoItem(Layer, _changeBuffer));
-            _changeBuffer = null;
-        }
     }
 }
