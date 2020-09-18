@@ -8,22 +8,23 @@ namespace DMIEditor
 {
     public partial class FileValueEditor : UserControl
     {
-        private DmiEX _dmiEx;
+        private FileEditor _fileEditor;
+        private DmiEX _dmiEx => _fileEditor?.DmiEx;
         
-        public FileValueEditor(DmiEX dmiEx)
+        public FileValueEditor(FileEditor fileEditor)
         {
-            _dmiEx = dmiEx;
             InitializeComponent();
+            _fileEditor = fileEditor;
 
-            width_editor.Value = dmiEx.Width;
+            width_editor.Value = _dmiEx.Width;
             width_editor.KeyDown += ChangeSize;
             width_editor.LostFocus += WidthChanged;
-            dmiEx.WidthChanged += WidthChanged;
+            _dmiEx.WidthChanged += WidthChanged;
 
-            height_editor.Value = dmiEx.Height;
+            height_editor.Value = _dmiEx.Height;
             height_editor.KeyDown += ChangeSize;
             height_editor.LostFocus += HeightChanged;
-            dmiEx.HeightChanged += HeightChanged;
+            _dmiEx.HeightChanged += HeightChanged;
 
             new_state_editor.KeyDown += NewState;
         }
@@ -32,8 +33,14 @@ namespace DMIEditor
         {
             if (e.Key != Key.Enter) return;
 
+
             int? width = width_editor.Value;
             int? height = height_editor.Value;
+            
+            if(width.HasValue || height.HasValue)
+                MainWindow.Current.UndoManager.RegisterUndoItem(new DmiEXSizeChangeUndoItem(_fileEditor));
+
+            
             if (width.HasValue)
             {
                 _dmiEx.Width = width.Value;
@@ -43,7 +50,6 @@ namespace DMIEditor
             {
                 _dmiEx.Height = height.Value;
             }
-            //todo undoitem
         }
         
         private void WidthChanged(object sender, EventArgs e)

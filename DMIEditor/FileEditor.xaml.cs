@@ -16,29 +16,41 @@ namespace DMIEditor
     /// </summary>
     public partial class FileEditor : UserControl
     {
-        public readonly DmiEX DmiEx;
+        public DmiEX DmiEx;
         public string Path { get; set; }
         public readonly MainWindow Main;
 
         private List<StateButton> _stateButtons = new List<StateButton>();
 
+        private FileValueEditor _fileValueEditor;
+
         public FileEditor(DmiEX dmiEx, MainWindow main, string path)
         {
-            DmiEx = dmiEx;
+            InitializeComponent();
             Main = main;
             Path = path;
-            InitializeComponent();
 
+            attachDmiEX(dmiEx);
+            
+            //image selection hotkeys
+            stateTabControl.SelectionChanged += UpdateStateUi;
+        }
+
+        public void attachDmiEX(DmiEX dmiEx)
+        {
+            DmiEx = dmiEx;
             dmiEx.StateListChanged += CreateStateButtons;
             
             //adding state buttons
             CreateStateButtons();
             
             // create dmi value editor
-            dmiValueEditorGrid.Children.Add(new FileValueEditor(DmiEx));
-
-            //image selection hotkeys
-            stateTabControl.SelectionChanged += UpdateStateUi;
+            if(_fileValueEditor != null) dmiValueEditorGrid.Children.Remove(_fileValueEditor);
+            _fileValueEditor = new FileValueEditor(this);
+            dmiValueEditorGrid.Children.Add(_fileValueEditor);
+            
+            //todo check validity of state/imageeditors & attach new dmiexstates/images
+            stateTabControl.Items.Clear();
         }
 
         private void CreateStateButtons(object sender = null, EventArgs e = null)
