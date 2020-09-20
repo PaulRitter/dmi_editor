@@ -71,6 +71,8 @@ namespace DMIEditor
         protected void SetImage(BitmapImage bitmap)
         {
             Img.Source = bitmap;
+            //bitmap.Freeze();
+            //Img.Dispatcher.BeginInvoke(new Action(() => Img.Source = bitmap));
         }
     }
 }

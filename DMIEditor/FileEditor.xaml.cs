@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using DMI_Parser;
@@ -206,6 +207,31 @@ namespace DMIEditor
                     Label.Text = $"\"{state.Id}\"";
                 };
                 state.GetImage(0, 0).ImageChanged += ImageChanged;
+
+                Button close_button = new Button
+                {
+                    Content = "Delete"
+                };
+                close_button.Click += DeleteState;
+
+                Button duplicate_button = new Button
+                {
+                    Content = "Duplicate"
+                };
+                duplicate_button.Click += DuplicateState;
+                
+                StackPanel button_panel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children =
+                    {
+                        duplicate_button,
+                        close_button
+                    }
+                };
+                
+                StackPanel sp = (StackPanel)Content;
+                sp.Children.Add(button_panel);
             }
 
             protected virtual void Clicked(object sender, EventArgs e)
@@ -215,7 +241,36 @@ namespace DMIEditor
 
             private void ImageChanged(object sender, EventArgs e)
             {
-                SetImage(BitmapUtils.Bitmap2BitmapImage(_state.GetImage(0,0).GetBitmap()));
+                SetImage(BitmapUtils.Bitmap2BitmapImage(_state.GetImage(0, 0).GetBitmap()));
+                //Task.Factory.StartNew(()=>SetImage(BitmapUtils.Bitmap2BitmapImage(_state.GetImage(0,0).GetBitmap())));
+            }
+
+            private void DeleteState(object sender, EventArgs e)
+            {
+                try
+                {
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateDeleteUndoItem(_fileEditor.DmiEx, _state));
+                    _fileEditor.DmiEx.RemoveState(_state);
+                }
+                catch (Exception ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
+            }
+
+            private void DuplicateState(object sender, EventArgs e)
+            {
+                try
+                {
+                    DmiEXState state = (DmiEXState)_state.Clone();
+                    state.Id = state.Id + "_duplicate";
+                    MainWindow.Current.UndoManager.RegisterUndoItem(new StateNewUndoItem(_fileEditor.DmiEx, state));
+                    _fileEditor.DmiEx.AddState(state);
+                }
+                catch (Exception ex)
+                {
+                    ErrorPopupHelper.Create(ex);
+                }
             }
         }
 
