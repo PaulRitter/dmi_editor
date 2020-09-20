@@ -260,7 +260,8 @@ namespace DMIEditor
         
         private void UpdateSelectionImage(object sender = null, EventArgs e = null)
         {
-            Bitmap bm = new Bitmap(Image.Width*8,Image.Height*8);
+            int resolution = 6;
+            Bitmap bm = new Bitmap(Image.Width*resolution,Image.Height*resolution);
             using (Graphics g = Graphics.FromImage(bm))
             {
                 foreach (var pixel in _selectedPixels)
@@ -273,8 +274,8 @@ namespace DMIEditor
                     var has_left_neighbour = neighbours.Any(t => t.X == pixel.X-1 && t.Y == pixel.Y);
 
                     var selector_image = BitmapHelper.CreateSelectionBox(!has_upper_neighbour, !has_right_neighbour,
-                        !has_lower_neighbour, !has_left_neighbour);
-                    g.DrawImage(selector_image, pixel.X*8, pixel.Y*8);
+                        !has_lower_neighbour, !has_left_neighbour, resolution);
+                    g.DrawImage(selector_image, pixel.X*resolution, pixel.Y*resolution);
                 }
             }
 

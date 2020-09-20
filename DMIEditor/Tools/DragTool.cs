@@ -46,16 +46,14 @@ namespace DMIEditor.Tools
             pixels.RemoveAll(point => point.X < 0 || point.Y < 0);
             pixels.RemoveAll(point => point.X >= Layer.Width || point.Y >= Layer.Height);
             
-            foreach (var pixel in pixels)
-            {
-                OnDrawMove(dmiExImage, pixel);
-            }
+            
+            OnDrawMove(dmiExImage, pixels.ToArray());
             lastPoint = p;
             recentExit = false;
-            OnDrawMoveEnded(dmiExImage);
+            OnDrawMoveEnded(dmiExImage, p);
         }
 
-        protected virtual void OnDrawMoveEnded(DmiEXImage image){}
+        protected virtual void OnDrawMoveEnded(DmiEXImage image, Point p){}
         
         private List<Point> GetPointsBetween(Point p1, Point p2)
         {
@@ -95,7 +93,7 @@ namespace DMIEditor.Tools
 
         protected virtual void OnDrawStart(DmiEXImage dmiExImage, Point p){}
 
-        protected virtual void OnDrawMove(DmiEXImage dmiExImage, Point p){}
+        protected virtual void OnDrawMove(DmiEXImage dmiExImage, Point[] p){}
         protected virtual void OnDrawStop(DmiEXImage dmiExImage, Point p){}
 
         public override void onMouseEnter(DmiEXImage dmiExImage, Point p, bool leftMousePressed)

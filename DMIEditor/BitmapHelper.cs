@@ -26,10 +26,10 @@ namespace DMIEditor
             return backgroundMap;
         }
 
-        public static Bitmap CreateSelectionBox(bool up = false, bool right = false, bool down = false,
-            bool left = false)
+        public static Bitmap CreateSelectionBox(bool up, bool right, bool down,
+            bool left, int resolution)
         {
-            Bitmap bm = new Bitmap(8,8);
+            Bitmap bm = new Bitmap(6,6);
             if (up)
             {
                 bool s = true;
@@ -47,7 +47,7 @@ namespace DMIEditor
                 for (int i = 0; i < bm.Height; i++)
                 {
                     var c = s ? Color.Black : Color.White;
-                    bm.SetPixel(7, i, c);
+                    bm.SetPixel(bm.Width-1, i, c);
                     s = !s;
                 }
             }
@@ -58,7 +58,7 @@ namespace DMIEditor
                 for (int i = 0; i < bm.Width; i++)
                 {
                     var c = s ? Color.Black : Color.White;
-                    bm.SetPixel(i, 7, c);
+                    bm.SetPixel(i, bm.Height-1, c);
                     s = !s;
                 }
             }

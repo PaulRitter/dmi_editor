@@ -13,7 +13,7 @@ namespace DMIEditor.Tools
             ImageEditor.ClearSelection();
         }
 
-        protected override void OnDrawMove(DmiEXImage dmiExImage, Point p)
+        protected override void OnDrawMoveEnded(DmiEXImage dmiExImage, Point p)
         {
             var startingPoint = StartingPoint.Equals(new Point(-1, -1)) ? p : StartingPoint;
             List<Point> selectedPoints = GetPointsInBox(startingPoint, p);

@@ -18,19 +18,19 @@ namespace DMIEditor.Tools
             _changeBuffer = new List<PixelChangeItem>();
         }
 
-        List<Point> pixels_to_change = new List<Point>();
-        protected override void OnDrawMove(DmiEXImage dmiExImage, Point p)
+        protected override void OnDrawMove(DmiEXImage dmiExImage, Point[] pixels)
         {
-            if (getColor() == getPixel(p)) return;
-            
-            _changeBuffer.Add(new PixelChangeItem(p, getPixel(p)));
-            pixels_to_change.Add(p);
-        }
+            List<Point> pixels_to_change = new List<Point>();
 
-        protected override void OnDrawMoveEnded(DmiEXImage image)
-        {
+            foreach (var p in pixels)
+            {
+                if (getColor() == getPixel(p)) return;
+            
+                _changeBuffer.Add(new PixelChangeItem(p, getPixel(p)));
+                pixels_to_change.Add(p);
+            }
+            
             setPixels(pixels_to_change.ToArray(), getColor());
-            pixels_to_change.Clear();
         }
 
         protected override void OnDrawStop(DmiEXImage dmiExImage, Point p)
