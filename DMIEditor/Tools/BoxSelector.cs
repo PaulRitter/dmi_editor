@@ -10,14 +10,14 @@ namespace DMIEditor.Tools
 
         public override void OnDeselected()
         {
-            MainWindow.Current.SelectedEditor?.SelectedStateEditor?.ImageEditor.ClearSelection();
+            ImageEditor.ClearSelection();
         }
 
         protected override void OnDrawMove(DmiEXImage dmiExImage, Point p)
         {
             var startingPoint = StartingPoint.Equals(new Point(-1, -1)) ? p : StartingPoint;
             List<Point> selectedPoints = GetPointsInBox(startingPoint, p);
-            MainWindow.Current.SelectedEditor?.SelectedStateEditor?.ImageEditor.SetSelection(selectedPoints.ToArray());
+            ImageEditor.SetSelection(selectedPoints.ToArray());
         }
 
         private List<Point> GetPointsInBox(Point start, Point end)

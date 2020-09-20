@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Media.Imaging;
 
 namespace DMIEditor
@@ -72,6 +75,53 @@ namespace DMIEditor
             }
 
             return bm;
+        }
+
+        public static List<Point> GetSimilarPoints(this Bitmap bitmap, Point p, int int_tolerance = 10)
+        {
+            bool CheckByte(byte value, byte target)
+            {
+                var diff = Math.Abs(target - value);
+                return diff <= int_tolerance;
+            }
+            
+            List<Point> resultList = new List<Point>();
+
+            var oldColor = bitmap.GetPixel(p.X, p.Y);
+            List<Point> alreadyProcessed = new List<Point>();
+            List<Point> workList = new List<Point> {p};
+            while (workList.Count > 0)
+            {
+                Point current_point = workList[^1];
+                workList.Remove(current_point);
+                    
+                if (alreadyProcessed.Any(point => point.Equals(current_point)))
+                    continue;
+                    
+                alreadyProcessed.Add(current_point);
+                //validate position
+                if (current_point.X >= bitmap.Width || current_point.X < 0)
+                    continue;
+                if (current_point.Y >= bitmap.Height || current_point.Y < 0)
+                    continue;
+
+                //check color
+                var color = bitmap.GetPixel(current_point.X, current_point.Y);
+                if(!CheckByte(color.A, oldColor.A) ||
+                   !CheckByte(color.R, oldColor.R) || 
+                   !CheckByte(color.G, oldColor.G) ||
+                   !CheckByte(color.B, oldColor.B))
+                    continue;
+
+                resultList.Add(current_point);
+                    
+                workList.Add(new Point(current_point.X + 1, current_point.Y));
+                workList.Add(new Point(current_point.X - 1, current_point.Y));
+                workList.Add(new Point(current_point.X, current_point.Y + 1));
+                workList.Add(new Point(current_point.X, current_point.Y - 1));
+            }
+
+            return resultList;
         }
     }
 }
