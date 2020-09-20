@@ -113,21 +113,7 @@ namespace DMIEditor
 
         private void CreateBackgroundImage(object sender = null, EventArgs e = null)
         {
-            //creating background map (tiling)
-            var backgroundMap = new Bitmap(Image.Width*2, Image.Height*2);
-            var s = true;
-            for (var i = 0; i < backgroundMap.Width; i++)
-            {
-                for (var j = 0; j < backgroundMap.Height; j++)
-                {
-                    var c = s ? Color.LightGray : Color.White;
-                    s = !s;
-                    backgroundMap.SetPixel(i, j, c);
-                }
-                s = !s; //offsetting every row
-            }
-            
-            backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(backgroundMap);
+            backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(TransparentBackgroundHelper.CreateTransparentBackgroundMap(Image.Width * 2, Image.Height * 2));
         }
 
         private void UpdateHotspotImage(object sender = null, EventArgs e = null)

@@ -16,15 +16,14 @@ namespace DMIEditor
         private readonly DmiEXState _state;
         private int _dirIndex;
         private int _frameIndex;
-        private Thread uiThread;
         public AnimationPreviewWindow(DmiEXState state, int dirIndex = 0)
         {
             InitializeComponent();
             
             _state = state;
             _dirIndex = dirIndex;
-            uiThread = Thread.CurrentThread;
             RenderOptions.SetBitmapScalingMode(image_viewer, BitmapScalingMode.NearestNeighbor);
+            RenderOptions.SetBitmapScalingMode(image_background, BitmapScalingMode.NearestNeighbor);
 
             foreach (Dir d in Enum.GetValues(typeof(Dir)))
             {
@@ -40,7 +39,16 @@ namespace DMIEditor
                 UpdateImage();
             };
             
+            CreateBackground();
             StartAnimation();
+            
+            //todo attach CreateBackground to width/height change
+        }
+
+        private void CreateBackground(object sender = null, EventArgs e = null)
+        {
+            image_background.Source = BitmapUtils.Bitmap2BitmapImage(
+                TransparentBackgroundHelper.CreateTransparentBackgroundMap(_state.Width * 2, _state.Height * 2));
         }
 
         private void StartAnimation()

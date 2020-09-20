@@ -11,6 +11,9 @@
             <TextBlock VerticalAlignment="Center" Margin="0,0,10,0">Direction:</TextBlock>
             <ComboBox VerticalAlignment="Center" x:Name="dir_selector"></ComboBox>
         </StackPanel>
-        <Image x:Name="image_viewer"></Image>
+        <Grid>
+            <Image x:Name="image_background"></Image>
+            <Image x:Name="image_viewer"></Image>
+        </Grid>
     </StackPanel>
 </Window>
