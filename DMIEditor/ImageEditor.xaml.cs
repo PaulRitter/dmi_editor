@@ -30,6 +30,9 @@ namespace DMIEditor
         
         private List<LayerButton> _layerButtons = new List<LayerButton>();
         
+        private List<Point> _selectedPixels = new List<Point>();
+        private event EventHandler SelectionChanged;
+        
         private int _layerIndex;
         public int LayerIndex
         {
@@ -101,6 +104,8 @@ namespace DMIEditor
             stateEditor.FileEditor.DmiEx.SizeChanged += CreateBackgroundImage;
             stateEditor.State.HotspotListChanged += UpdateHotspotImage;
             MainWindow.Current.ToolSelectionChanged += UpdateHotspotImage;
+
+            SelectionChanged += UpdateSelectionImage;
             
             CreateBackgroundImage();
             
@@ -109,11 +114,13 @@ namespace DMIEditor
             UpdateImageDisplay();
 
             UpdateHotspotImage();
+            
+            UpdateSelectionImage();
         }
 
         private void CreateBackgroundImage(object sender = null, EventArgs e = null)
         {
-            backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(TransparentBackgroundHelper.CreateTransparentBackgroundMap(Image.Width * 2, Image.Height * 2));
+            backgroundImg.Source = BitmapUtils.Bitmap2BitmapImage(BitmapHelper.CreateTransparentBackgroundMap(Image.Width * 2, Image.Height * 2));
         }
 
         private void UpdateHotspotImage(object sender = null, EventArgs e = null)
@@ -211,6 +218,67 @@ namespace DMIEditor
             };
             addLowBtn.Click += AddLayerOnBottom;
             LayerStackPanel.Children.Add(addLowBtn);
+        }
+
+        public void ClearSelection()
+        {
+            _selectedPixels.Clear();
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+        
+        public void SetSelection(Point[] points)
+        {
+            _selectedPixels.Clear();
+            SelectPixel(points);
+        }
+        
+        public void SelectPixel(Point point) => SelectPixel(new[] {point});
+        
+        public void SelectPixel(Point[] points)
+        {
+            foreach (var point in points)
+            {
+                if (_selectedPixels.Any(p => p.Equals(point))) continue;
+            
+                _selectedPixels.Add(point);
+            }
+            
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void DeSelectPixel(Point point) => SelectPixel(new[] {point});
+        
+        public void DeSelectPixel(Point[] points)
+        {
+            foreach (var point in points)
+            {
+                _selectedPixels.RemoveAll(p => p.Equals(point));
+            }
+            
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+        
+        private void UpdateSelectionImage(object sender = null, EventArgs e = null)
+        {
+            Bitmap bm = new Bitmap(Image.Width*8,Image.Height*8);
+            using (Graphics g = Graphics.FromImage(bm))
+            {
+                foreach (var pixel in _selectedPixels)
+                {
+                    var neighbours =
+                        _selectedPixels.FindAll(t => Math.Abs(pixel.X - t.X) <= 1 && Math.Abs(pixel.Y - t.Y) <= 1);
+                    var has_upper_neighbour = neighbours.Any(t => t.X == pixel.X && t.Y == pixel.Y - 1);
+                    var has_right_neighbour = neighbours.Any(t => t.X == pixel.X+1 && t.Y == pixel.Y);
+                    var has_lower_neighbour = neighbours.Any(t => t.X == pixel.X && t.Y == pixel.Y + 1);
+                    var has_left_neighbour = neighbours.Any(t => t.X == pixel.X-1 && t.Y == pixel.Y);
+
+                    var selector_image = BitmapHelper.CreateSelectionBox(!has_upper_neighbour, !has_right_neighbour,
+                        !has_lower_neighbour, !has_left_neighbour);
+                    g.DrawImage(selector_image, pixel.X*8, pixel.Y*8);
+                }
+            }
+
+            selectionImg.Source = BitmapUtils.Bitmap2BitmapImage(bm);
         }
 
         private void AddLayerOnTop(object sender, EventArgs e) => AddLayerAtIndex(HighestIndex + 1);
