@@ -234,8 +234,9 @@ namespace DMIEditor
                 sp.Children.Add(button_panel);
             }
 
-            protected virtual void Clicked(object sender, EventArgs e)
+            protected virtual void Clicked(object sender, RoutedEventArgs e)
             {
+                if (e.Source != this) return;
                 _fileEditor.SelectOrOpenState(StateIndex);
             }
 

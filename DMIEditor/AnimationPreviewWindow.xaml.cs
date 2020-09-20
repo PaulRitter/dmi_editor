@@ -48,7 +48,7 @@ namespace DMIEditor
         private void CreateBackground(object sender = null, EventArgs e = null)
         {
             image_background.Source = BitmapUtils.Bitmap2BitmapImage(
-                TransparentBackgroundHelper.CreateTransparentBackgroundMap(_state.Width * 2, _state.Height * 2));
+                BitmapHelper.CreateTransparentBackgroundMap(_state.Width * 2, _state.Height * 2));
         }
 
         private void StartAnimation()
